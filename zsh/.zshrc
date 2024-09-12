@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/gzg/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -108,32 +108,14 @@ export NVM_DIR="$HOME/.nvm"
 
 export PATH="/usr/local/sbin:/usr/local/php5/bin:/usr/local/bin:/usr/local/mysql/bin:~/.composer/vendor/bin:$PATH"
 export PATH="/usr/local/opt/openssl/bin:$PATH"
-export PATH="/usr/local/opt/php@7.1/bin:$PATH"
 export PATH="/usr/local/opt/libxml2/bin:$PATH"
-export PATH="/opt/homebrew/opt/ruby@2.7/bin:$PATH"
-export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
-export PATH="/Users/gzg/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 if [ /usr/local/bin/kubectl ]; then source <(kubectl completion zsh); fi
 
-###-tns-completion-start-###
-if [ -f /Users/gzg/.tnsrc ]; then 
-    source /Users/gzg/.tnsrc 
-fi
-###-tns-completion-end-###
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/gzg/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/gzg/Downloads/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/gzg/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/gzg/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
-
-alias luamake=/Users/gzg/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
-
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+alias luamake=$HOME/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
 
 phan() { docker run -v $PWD:/mnt/src --rm -u "$(id -u):$(id -g)" phanphp/phan:latest $@; return $?; }
 

@@ -22,7 +22,7 @@ return {
           },
         },
         discovery = {
-          enabled = false,
+          enabled = true,
         },
       }
 
@@ -79,7 +79,7 @@ return {
       )
       vim.api.nvim_set_keymap(
         'n',
-        '<leader>ta',
+        '<leader>tA',
         "<cmd>lua require('neotest').run.attach()<CR>",
         { noremap = true, silent = true, desc = '[A]ttach to Nearest Test' }
       )

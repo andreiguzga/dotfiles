@@ -310,7 +310,7 @@ require('lazy').setup({
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
+        { '<leader>t', group = '[T]est/[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
@@ -373,11 +373,14 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            i = {
+              -- Delete buffer when pressing <C-c> in normal mode
+              ['<C-c>'] = require('telescope.actions').delete_buffer,
+            },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {

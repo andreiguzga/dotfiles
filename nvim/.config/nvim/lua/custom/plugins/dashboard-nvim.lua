@@ -36,6 +36,13 @@ return {
           },
           center = {
             {
+              icon = '  ',
+              desc = 'Projects           ', -- Description for the projects shortcut
+              action = "lua require('telescope').extensions.projects.projects{}", -- Action to open projects in Telescope
+              shortcut = 'SPC f p', -- Keybinding description
+              key = 'p',
+            },
+            {
               icon = '  ',
               desc = 'Find File          ',
               action = 'Telescope find_files',

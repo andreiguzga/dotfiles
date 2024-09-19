@@ -656,6 +656,13 @@ require('lazy').setup({
             },
           },
         },
+        html = {},
+        cssls = {},
+        dockerls = {},
+        docker_compose_language_service = {},
+        eslint = {},
+        prismals = {},
+        yamlls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -673,6 +680,13 @@ require('lazy').setup({
         'stylua', -- Used to format Lua code
         'intelephense',
         'typescript-language-server',
+        'html',
+        'cssls',
+        'dockerls',
+        'docker_compose_language_service',
+        'eslint',
+        'prismals',
+        'yamlls',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -854,6 +868,13 @@ require('lazy').setup({
           { name = 'path' },
         },
       }
+
+      cmp.setup.filetype({ 'sql', 'mysql' }, {
+        sources = {
+          { name = 'vim-dadbod-completion' },
+          { name = 'buffer' },
+        },
+      })
     end,
   },
 

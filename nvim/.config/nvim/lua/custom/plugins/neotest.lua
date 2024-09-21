@@ -14,9 +14,20 @@ return {
           require 'neotest-jest' {
             filetypes = { 'javascript', 'typescript', 'typescriptreact' },
             jestCommand = 'yarn test',
-            testMatch = { '**/?(*.)+(spec|test).[jt]s?(x)' },
+            jestConfigFile = function(file)
+              if string.find(file, 'e2e%-spec') or string.find(file, 'e2e%-test') then
+                local folder = string.match(file, '(.*/)')
+                print(folder .. 'jest.e2e.config.ts')
+                return folder .. 'jest.e2e.config.ts'
+              end
+
+              return vim.fn.getcwd() .. '/jest.config.ts'
+            end,
             env = { CI = true },
-            cwd = function()
+            cwd = function(file)
+              if string.find(file, 'e2e-tests') then
+                return string.match(file, '(.+)/e2e-tests')
+              end
               return vim.fn.getcwd()
             end,
           },
@@ -27,11 +38,11 @@ return {
       }
 
       -- Keybindings for Neotest with descriptions for which-key
-      vim.api.nvim_set_keymap('n', '<leader>tt', "<cmd>lua require('neotest').run.run()<CR>", { noremap = true, silent = true, desc = 'Run [T]est Nearest' })
+      vim.api.nvim_set_keymap('n', '<leader>tt', "<cmd>lua require('neotest').run.run()<CR>", { noremap = true, silent = true, desc = 'Run Nearest [T]est' })
       vim.api.nvim_set_keymap(
         'n',
         '<leader>tw',
-        "<cmd>lua require('neotest').run.run({ jestCommand = 'jest --watch ' })<CR>",
+        "<cmd>lua require('neotest').run.run({ jestCommand = 'yarn test:watch' })<CR>",
         { noremap = true, silent = true, desc = 'Run Test with [W]atch' }
       )
       vim.api.nvim_set_keymap(

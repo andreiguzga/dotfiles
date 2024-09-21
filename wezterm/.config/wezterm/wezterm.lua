@@ -23,9 +23,10 @@ config.window_background_opacity = 0.9
 config.text_background_opacity = 1.0
 config.macos_window_background_blur = 10
 
+config.enable_scroll_bar = true
+
 config.front_end = "OpenGL"
 config.scrollback_lines = 10000
-config.enable_vi_mode = true
 
 -- and finally, return the configuration to wezterm
 return config

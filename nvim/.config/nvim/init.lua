@@ -883,28 +883,47 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is.
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'catppuccin/nvim',
+    'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
-      require('catppuccin').setup {
-        integrations = {
-          cmp = true,
-          gitsigns = true,
-          nvimtree = true,
-          treesitter = true,
-          noice = true,
-          harpoon = true,
-          mason = true,
-          neogit = true,
-          neotree = true,
-          telescope = true,
-          which_key = true,
+      require('tokyonight').setup {
+        style = 'night',
+        transparent = true,
+        terminal_colors = true,
+        styles = {
+          comments = { italic = true },
+          keywords = { italic = false },
+          functions = {},
+          variables = {},
         },
+        on_colors = function(colors) end,
+        on_highlights = function(hl, colors)
+          -- Neo-tree specific highlights
+          hl.NeoTreeNormal = { fg = colors.fg_dark, bg = colors.bg }
+          hl.NeoTreeNormalNC = { fg = colors.fg_dark, bg = colors.bg }
+          hl.NeoTreeEndOfBuffer = { fg = colors.bg, bg = colors.bg }
+          hl.NeoTreeGitAdded = { fg = colors.green }
+          hl.NeoTreeGitDeleted = { fg = colors.red }
+          hl.NeoTreeGitModified = { fg = colors.yellow }
+          hl.NeoTreeGitConflict = { fg = colors.orange }
+          hl.NeoTreeIndentMarker = { fg = colors.bg_highlight }
+          hl.NeoTreeSymbolicLinkTarget = { fg = colors.purple }
+
+          -- File icon colors
+          hl.NeoTreeDirectoryName = { fg = colors.blue, bold = true }
+          hl.NeoTreeDirectoryIcon = { fg = colors.blue }
+          hl.NeoTreeFileName = { fg = colors.fg_dark }
+          hl.NeoTreeFileIcon = { fg = colors.fg }
+          hl.NeoTreeRootName = { fg = colors.fg, bold = true }
+
+          -- Modified file marker
+          hl.NeoTreeModified = { fg = colors.red }
+        end,
       }
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'catppuccin'
+      vim.cmd.colorscheme 'tokyonight'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'

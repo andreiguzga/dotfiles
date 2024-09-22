@@ -10,7 +10,7 @@ local config = wezterm.config_builder()
 config.color_scheme = "tokyonight_night"
 
 config.font = wezterm.font("DejaVuSansM Nerd Font Mono")
-config.font_size = 12.0
+config.font_size = 14.0
 
 -- Hide the tab bar when only one tab is open
 config.hide_tab_bar_if_only_one_tab = true
@@ -19,7 +19,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = "RESIZE" -- Removes title bar but keeps resizing ability
 
 -- Set the background transparency
-config.window_background_opacity = 0.9
+config.window_background_opacity = 0.95
 config.text_background_opacity = 1.0
 config.macos_window_background_blur = 10
 

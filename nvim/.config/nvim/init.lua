@@ -622,7 +622,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        ts_ls = {},
+        -- ts_ls = {},
         --
 
         lua_ls = {
@@ -676,11 +676,11 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
+      local lsp_servers = vim.tbl_keys(servers or {})
+      -- Tools: formatters, language servers, etc.
+      local tools = {
         'stylua', -- Used to format Lua code
         'intelephense',
-        'typescript-language-server',
         'html',
         'cssls',
         'dockerls',
@@ -689,10 +689,20 @@ require('lazy').setup({
         'prismals',
         'yamlls',
         'jsonls',
-      })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+      }
+
+      vim.list_extend(tools, lsp_servers)
+      require('mason-tool-installer').setup { ensure_installed = tools }
+
+      -- Disable deprecated automatic_enable feature if set by something else
+      package.loaded['mason-lspconfig.features.automatic_enable'] = {
+        init = function() end,
+        enable = function() end,
+        enable_all = function() end,
+      }
 
       require('mason-lspconfig').setup {
+        ensure_installed = lsp_servers,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -751,6 +761,7 @@ require('lazy').setup({
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        json = { 'prettierd', 'prettier' },
       },
     },
   },

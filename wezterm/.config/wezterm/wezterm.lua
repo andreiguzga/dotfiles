@@ -28,5 +28,7 @@ config.enable_scroll_bar = true
 config.front_end = "OpenGL"
 config.scrollback_lines = 10000
 
+config.exit_behavior = "Hold"
+
 -- and finally, return the configuration to wezterm
 return config

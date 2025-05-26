@@ -23,3 +23,6 @@ vim.api.nvim_set_keymap('i', '<S-Tab>', 'pumvisible() ? "\\<C-p>" : "\\<S-Tab>"'
 -- Set the cursor in the middle of the screen when scrolling half a page
 vim.api.nvim_set_keymap('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
+
+-- Paste and keep the paste selection in register when in any visual mode
+vim.api.nvim_set_keymap('v', '<C-p>', '"_dP', { noremap = true, silent = true })

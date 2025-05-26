@@ -10,6 +10,9 @@ return {
         model = 'gpt-4o',
         auto_insert_mode = true,
         show_help = true,
+        config = {
+          chat_autocomplete = true, -- ✅ NEW: replaces deprecated cmp integration
+        },
         question_header = '  ' .. user .. ' ',
         answer_header = '  Copilot ',
         window = {
@@ -57,7 +60,6 @@ return {
         desc = 'Quick Chat (CopilotChat)',
         mode = { 'n', 'v' },
       },
-      -- Show help actions with telescope
       {
         '<leader>ad',
         function()
@@ -67,7 +69,6 @@ return {
         desc = 'Diagnostic Help (CopilotChat)',
         mode = { 'n', 'v' },
       },
-      -- Show prompts actions with telescope
       {
         '<leader>ap',
         function()
@@ -80,7 +81,6 @@ return {
     },
     config = function(_, opts)
       local chat = require 'CopilotChat'
-      require('CopilotChat.integrations.cmp').setup()
 
       vim.api.nvim_create_autocmd('BufEnter', {
         pattern = 'copilot-chat',

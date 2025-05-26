@@ -29,5 +29,7 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
   end,
 })
 
-vim.g.copilot_node_command = '/Users/gzg/.nvm/versions/node/v18.20.3/bin/node'
+vim.g.copilot_node_command = '/Users/gzg/.nvm/versions/node/v20.19.2/bin/node'
 vim.g.lazyvim_php_lsp = 'intelephense'
+-- vim.opt.number = true
+vim.opt.relativenumber = true

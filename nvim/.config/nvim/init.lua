@@ -325,7 +325,7 @@ require('lazy').setup({
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
+    event = 'LspAttach',
     branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
@@ -641,6 +641,7 @@ require('lazy').setup({
         },
         -- Add Intelephense for PHP
         intelephense = {
+          filetypes = { 'php' }, -- Specify filetypes for Intelephense
           settings = {
             intelephense = {
               environment = {
@@ -701,6 +702,7 @@ require('lazy').setup({
         enable_all = function() end,
       }
 
+      local lspconfig = require 'lspconfig'
       require('mason-lspconfig').setup {
         ensure_installed = lsp_servers,
         handlers = {
@@ -715,7 +717,7 @@ require('lazy').setup({
               end
             end
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
+            lspconfig[server_name].setup(server)
           end,
         },
       }
@@ -1051,8 +1053,8 @@ require('lazy').setup({
   { import = 'custom.plugins' },
 }, {
   spec = {
-    { import = 'lazyvim.plugins.extras.coding.copilot-chat' },
-    { import = 'lazyvim.plugins.extras.lang.php' },
+    -- { import = 'lazyvim.plugins.extras.coding.copilot-chat' },
+    -- { import = 'lazyvim.plugins.extras.lang.php' },
   },
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

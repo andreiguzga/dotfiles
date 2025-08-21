@@ -62,7 +62,7 @@ ZSH_THEME="intheloop"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  git zsh-autosuggestions colored-man-pages docker docker-compose npm nvm yarn kubectl
+  git zsh-autosuggestions colored-man-pages docker docker-compose npm nvm kubectl
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -122,3 +122,34 @@ phan() { docker run -v $PWD:/mnt/src --rm -u "$(id -u):$(id -g)" phanphp/phan:la
 bindkey '^ ' autosuggest-accept
 
 eval "$(oh-my-posh init zsh --config $HOME/.config/ohmyposh/gzg.yaml)"
+
+# --- fzf speed & defaults ---
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+
+# --- fzf look & feel ---
+export FZF_DEFAULT_OPTS='
+  --height 60%
+  --layout=reverse
+  --border
+  --inline-info
+  --preview "([[ -f {} ]] && (bat --style=numbers --paging=never --color=always {})) || ([[ -d {} ]] && ls -la {} | sed -n \"1,200p\")"
+  --preview-window=right:60%
+'
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+eval "$(zoxide init zsh)"
+
+# yazi
+
+export EDITOR="nvim"
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}

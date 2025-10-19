@@ -26,3 +26,7 @@ vim.api.nvim_set_keymap('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true
 
 -- Paste and keep the paste selection in register when in any visual mode
 vim.api.nvim_set_keymap('v', '<C-p>', '"_dP', { noremap = true, silent = true })
+
+-- Lazygit
+-- Open Lazygit in a floating terminal
+vim.keymap.set('n', '<leader>gg', '<cmd>LazyGit<CR>', { desc = 'Open LazyGit' })

@@ -1,94 +1,111 @@
-$schema: https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
-blocks:
-  - alignment: left
-    newline: true
-    segments:
-      - background: "#3A3A3A"
-        foreground: "#ffffff"
-        style: powerline
-        template: "{{ if .WSL }}WSL at{{ end }} {{.Icon}} "
-        type: os
-      - background: "green"
-        foreground: "black"
-        powerline_symbol: "\ue0b0"
-        properties:
-          style: full
-        style: powerline
-        template: " {{ .Path }} "
-        type: path
-      - background: "#FF885B"
-        background_templates:
-          - "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}"
-          - "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}"
-          - "{{ if gt .Ahead 0 }}#B388FF{{ end }}"
-          - "{{ if gt .Behind 0 }}#B388FF{{ end }}"
-        foreground: "black"
-        leading_diamond: "\ue0b6"
-        powerline_symbol: "\ue0b0"
-        properties:
-          branch_max_length: 25
-          fetch_stash_count: true
-          fetch_status: true
-          branch_icon: "\uE0A0 "
-          branch_identical_icon: "\u25CF"
-        style: powerline
-        template: " {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
-        trailing_diamond: "\ue0b4"
-        type: git
-      - background: "#ffff66"
-        foreground: "#111111"
-        leading_diamond: "\ue0b6"
-        powerline_symbol: "\ue0b0"
-        style: powerline
-        template: " \uf0ad "
-        type: root
-    type: prompt
-  - alignment: right
-    segments:
-      - foreground: "#81ff91"
-        style: diamond
-        template: "  {{ round .PhysicalPercentUsed .Precision }}% "
-        type: sysinfo
-      - foreground: "#81ff91"
-        properties:
-          fetch_version: true
-        style: powerline
-        template: "<#cc7eda> \u007C </><#7eb8da>\ue718</> {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }}"
-        type: node
-      - type: npm
-        style: powerline
-        foreground: "#81ff91"
-        template: "<#cc7eda> \u007C </><#7eb8da>\ue71e </> {{ .Full }}"
-      - type: sysinfo
-        style: powerline
-        foreground: "#81ff91"
-        template: "<> </>"
-      - background: "yellow"
-        foreground: "black"
-        leading_diamond: "\ue0b2"
-        trailing_diamond: "\ue0b0"
-        properties:
-          style: austin
-          threshold: 150
-        style: diamond
-        template: "  {{ .FormattedMs }} "
-        type: executiontime
-    type: prompt
-  - alignment: left
-    newline: true
-    segments:
-      - background: "#3A3A3A"
-        foreground: "#ffffff"
-        style: powerline
-        powerline_symbol: "\ue0b0"
-        template: " {{ .UserName }} ❯"
-        type: text
-    type: prompt
+# yaml-language-server: $schema=https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
+
 transient_prompt:
-  background: "transparent"
-  foreground: "green"
-  template: "{{ .UserName }} > "
-  newline: true
-console_title_template: "{{ .Folder }}"
+    template: '{{ .UserName }} > '
+    foreground: green
+    background: transparent
+    newline: true
+console_title_template: '{{ .Folder }}'
+blocks:
+    - type: prompt
+      alignment: left
+      segments:
+        - properties:
+            cache_duration: none
+          template: '{{ if .WSL }}WSL at{{ end }} {{.Icon}} '
+          foreground: '#ffffff'
+          background: '#3A3A3A'
+          type: os
+          style: powerline
+        - properties:
+            cache_duration: none
+            style: full
+          template: ' {{ .Path }} '
+          foreground: black
+          powerline_symbol: 
+          background: green
+          type: path
+          style: powerline
+        - properties:
+            branch_icon: ' '
+            branch_identical_icon: ●
+            branch_max_length: 25
+            cache_duration: none
+            fetch_stash_count: true
+            fetch_status: true
+          leading_diamond: 
+          trailing_diamond: 
+          template: ' {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }}  {{ .StashCount }}{{ end }} '
+          foreground: black
+          powerline_symbol: 
+          background: '#FF885B'
+          type: git
+          style: powerline
+          background_templates:
+            - '{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}'
+            - '{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}'
+            - '{{ if gt .Ahead 0 }}#B388FF{{ end }}'
+            - '{{ if gt .Behind 0 }}#B388FF{{ end }}'
+        - properties:
+            cache_duration: none
+          leading_diamond: 
+          template: '  '
+          foreground: '#111111'
+          powerline_symbol: 
+          background: '#ffff66'
+          type: root
+          style: powerline
+      newline: true
+    - type: prompt
+      alignment: right
+      segments:
+        - properties:
+            cache_duration: none
+          template: '  {{ round .PhysicalPercentUsed .Precision }}% '
+          foreground: '#81ff91'
+          type: sysinfo
+          style: diamond
+        - properties:
+            cache_duration: none
+            fetch_version: true
+          template: <#cc7eda> | </><#7eb8da></> {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }}
+          foreground: '#81ff91'
+          type: node
+          style: powerline
+        - properties:
+            cache_duration: none
+          template: <#cc7eda> | </><#7eb8da> </> {{ .Full }}
+          foreground: '#81ff91'
+          type: npm
+          style: powerline
+        - properties:
+            cache_duration: none
+          template: <> </>
+          foreground: '#81ff91'
+          type: sysinfo
+          style: powerline
+        - properties:
+            cache_duration: none
+            style: austin
+            threshold: 150
+          leading_diamond: 
+          trailing_diamond: 
+          template: '  {{ .FormattedMs }} '
+          foreground: black
+          background: yellow
+          type: executiontime
+          style: diamond
+    - type: prompt
+      alignment: left
+      segments:
+        - properties:
+            cache_duration: none
+          template: ' {{ .UserName }} ❯'
+          foreground: '#ffffff'
+          powerline_symbol: 
+          background: '#3A3A3A'
+          type: text
+          style: powerline
+      newline: true
+version: 3
 final_space: true
-version: 2

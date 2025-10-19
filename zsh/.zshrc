@@ -62,7 +62,7 @@ ZSH_THEME="intheloop"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  git zsh-autosuggestions colored-man-pages docker docker-compose npm nvm kubectl
+  git zsh-autosuggestions colored-man-pages docker docker-compose npm nvm
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -113,7 +113,6 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
-if [ /usr/local/bin/kubectl ]; then source <(kubectl completion zsh); fi
 
 alias luamake=$HOME/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
 
@@ -153,3 +152,5 @@ function y() {
 	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
+export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
+alias lzd='lazydocker'

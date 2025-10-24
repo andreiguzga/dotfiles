@@ -1,11 +1,11 @@
 theme = TokyoNight Night
 font-family = JetBrains Mono
 font-size = 13
-background-opacity = 0.8
-background-blur-radius = 20
+background-opacity = 0.95
+background-blur-radius = 15
 window-padding-x = 6
 window-padding-y = 6
 cursor-style = block
 macos-titlebar-style = hidden
 mouse-hide-while-typing = true
-keybind	= global:cmd+s=toggle_quick_terminal
+keybind	= global:cmd+opt+t=toggle_quick_terminal

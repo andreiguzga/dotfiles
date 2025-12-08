@@ -112,6 +112,11 @@ export PATH="/usr/local/opt/libxml2/bin:$PATH"
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/tools
+export PATH=$PATH:$ANDROID_HOME/tools/bin
 
 
 alias luamake=$HOME/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
@@ -129,6 +134,7 @@ export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 
 # --- fzf look & feel ---
 export FZF_DEFAULT_OPTS='
+  --tmux
   --height 60%
   --layout=reverse
   --border
@@ -154,3 +160,7 @@ function y() {
 }
 export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
 alias lzd='lazydocker'
+alias prusa-slicer="/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer"
+export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"

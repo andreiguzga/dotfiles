@@ -35,6 +35,9 @@ chmod +x ~/.local/bin/oh-my-posh
 
 # Node Version Manager (for Node.js)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Yazi flavor (optional - for theme support)
+mkdir -p ~/.config/yazi/flavors
 ```
 
 2. Apply dotfiles:
@@ -69,6 +72,9 @@ brew install jandedobbeleer/oh-my-posh/tap/oh-my-posh
 
 # Node.js (via Homebrew)
 brew install node@18
+
+# Yazi flavor (optional - for theme support)
+mkdir -p ~/.config/yazi/flavors
 ```
 
 2. Apply dotfiles:

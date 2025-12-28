@@ -87,7 +87,7 @@ fi
 # ssh
 # export SSH_KEY_PATH="~/.ssh/rsa_id"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# Set personal aliases, overriding the provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
@@ -101,23 +101,39 @@ fi
 #   for i in $(seq 1 10); do /usr/bin/time $shell -i -c exit; done
 # }
 
-export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+# OS detection and OS-specific paths
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # MacOS
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
+  export PATH="/usr/local/sbin:/usr/local/php5/bin:/usr/local/bin:/usr/local/mysql/bin:~/.composer/vendor/bin:$PATH"
+  export PATH="/usr/local/opt/openssl/bin:$PATH"
+  export PATH="/usr/local/opt/libxml2/bin:$PATH"
+  export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
+  export ANDROID_HOME=$HOME/Library/Android/sdk
+  export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
+  export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+  export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+  alias prusa-slicer="/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # Linux
+  export NVM_DIR="$HOME/.config/nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-export PATH="/usr/local/sbin:/usr/local/php5/bin:/usr/local/bin:/usr/local/mysql/bin:~/.composer/vendor/bin:$PATH"
-export PATH="/usr/local/opt/openssl/bin:$PATH"
-export PATH="/usr/local/opt/libxml2/bin:$PATH"
+  export PATH="$HOME/.local/bin:$PATH"
+  export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/linux:$PATH"
+  export ANDROID_HOME=$HOME/Android/Sdk
+fi
+
+# Common paths (both OS)
 export PATH=$PATH:$ANDROID_HOME/platform-tools
-export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
-export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
-
+export PATH="$JAVA_HOME/bin:$PATH"
 
 alias luamake=$HOME/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
 
@@ -154,13 +170,9 @@ export EDITOR="nvim"
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
+	IFS="" read -r -d '' cwd < "$tmp"
 	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
-export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
 alias lzd='lazydocker'
-alias prusa-slicer="/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer"
-export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
-export PATH="$JAVA_HOME/bin:$PATH"
+

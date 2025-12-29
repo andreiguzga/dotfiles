@@ -42,7 +42,7 @@ mkdir -p ~/.config/yazi/flavors
 # Tmux Plugin Manager (TPM) and plugins
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
-git clone https://github.com/catppuccin/tmux.git ~/.tmux/plugins/catppuccin
+git clone https://github.com/fabioluciano/tmux-powerkit ~/.tmux/plugins/tmux-powerkit
 git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
 ```
 
@@ -85,7 +85,7 @@ mkdir -p ~/.config/yazi/flavors
 # Tmux Plugin Manager (TPM) and plugins
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
-git clone https://github.com/catppuccin/tmux.git ~/.tmux/plugins/catppuccin
+git clone https://github.com/fabioluciano/tmux-powerkit ~/.tmux/plugins/tmux-powerkit
 git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
 ```
 

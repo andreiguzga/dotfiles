@@ -15,13 +15,13 @@ This directory contains your tmux configuration using TPM (Tmux Plugin Manager).
    ./install-plugins.sh
    ```
 
-   Or manually:
-   ```bash
-   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-   git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
-   git clone https://github.com/catppuccin/tmux.git ~/.tmux/plugins/catppuccin
-   git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
-   ```
+    Or manually:
+    ```bash
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+    git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
+    git clone https://github.com/fabioluciano/tmux-powerkit ~/.tmux/plugins/tmux-powerkit
+    git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
+    ```
 
 3. Reload tmux configuration:
    ```bash
@@ -32,7 +32,7 @@ This directory contains your tmux configuration using TPM (Tmux Plugin Manager).
 
 - **TPM** - Tmux Plugin Manager
 - **tmux-sensible** - Sensible defaults for tmux
-- **catppuccin/tmux** - Catppuccin theme (macchiato flavor)
+- **tmux-powerkit** - Feature-rich tmux theme with Tokyo Night variant
 - **tmux-yank** - Copy text to system clipboard
 
 ## Keybindings
@@ -47,9 +47,10 @@ This directory contains your tmux configuration using TPM (Tmux Plugin Manager).
 
 ## Theme
 
-- **Flavor**: Catppuccin Macchiato
+- **Theme**: Tokyo Night (via tmux-powerkit)
 - **Status bar**: Top position
 - **Window numbers**: Right side
+- **Features**: System monitoring, session info, user display
 
 ## Updating Plugins
 

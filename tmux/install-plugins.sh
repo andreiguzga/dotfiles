@@ -17,7 +17,7 @@ echo "Installing tmux plugins..."
 
 plugins=(
   "tmux-plugins/tmux-sensible"
-  "catppuccin/tmux"
+  "fabioluciano/tmux-powerkit"
   "tmux-plugins/tmux-yank"
 )
 

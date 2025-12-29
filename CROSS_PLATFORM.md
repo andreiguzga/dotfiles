@@ -38,6 +38,12 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
 # Yazi flavor (optional - for theme support)
 mkdir -p ~/.config/yazi/flavors
+
+# Tmux Plugin Manager (TPM) and plugins
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
+git clone https://github.com/catppuccin/tmux.git ~/.tmux/plugins/catppuccin
+git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
 ```
 
 2. Apply dotfiles:
@@ -75,6 +81,12 @@ brew install node@18
 
 # Yazi flavor (optional - for theme support)
 mkdir -p ~/.config/yazi/flavors
+
+# Tmux Plugin Manager (TPM) and plugins
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+git clone https://github.com/tmux-plugins/tmux-sensible ~/.tmux/plugins/tmux-sensible
+git clone https://github.com/catppuccin/tmux.git ~/.tmux/plugins/catppuccin
+git clone https://github.com/tmux-plugins/tmux-yank ~/.tmux/plugins/tmux-yank
 ```
 
 2. Apply dotfiles:

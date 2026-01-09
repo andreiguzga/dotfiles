@@ -6,7 +6,7 @@
     "opencode-openai-codex-auth"
   ],
   "permission": {
-    "read": true, // Always allow reading files
+    "read": "allow", // Always allow reading files
     "edit": "ask", // Ask before editing any file
     "write": "ask", // Ask before writing any file
     "bash": "ask", // Ask before running bash commands

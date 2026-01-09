@@ -126,6 +126,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   export PATH="$HOME/.local/bin:$PATH"
   export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/linux:$PATH"
   export ANDROID_HOME=$HOME/Android/Sdk
+  export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 fi
 
 # Common paths (both OS)
@@ -134,6 +135,10 @@ export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH="$JAVA_HOME/bin:$PATH"
+# NDK path - dynamically picks latest installed version
+if [[ -d "$ANDROID_HOME/ndk" ]]; then
+  export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk 2>/dev/null | sort -V | tail -1)
+fi
 
 alias luamake=$HOME/.config/nvim/tools/lua-language-server/3rd/luamake/luamake
 

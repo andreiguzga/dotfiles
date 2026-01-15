@@ -1,0 +1,343 @@
+@import "../omarchy/current/theme/waybar.css";
+
+* {
+  background-color: @background;
+  color: @foreground;
+
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: 'JetBrainsMono Nerd Font';
+  font-size: 12px;
+}
+
+.modules-left {
+  margin-left: 8px;
+}
+
+.modules-right {
+  margin-right: 8px;
+}
+
+#workspaces button {
+  all: initial;
+  padding: 0 6px;
+  margin: 0 1.5px;
+  min-width: 9px;
+}
+
+#workspaces button.empty {
+  opacity: 0.5;
+}
+
+#cpu,
+#battery,
+#pulseaudio,
+#custom-omarchy,
+#custom-screenrecording-indicator,
+#custom-update {
+  min-width: 12px;
+  margin: 0 7.5px;
+}
+
+#tray {
+  margin-right: 16px;
+}
+
+#bluetooth {
+  margin-right: 17px;
+}
+
+#network {
+  margin-right: 13px;
+}
+
+#custom-expand-icon {
+  margin-right: 18px;
+}
+
+tooltip {
+  padding: 2px;
+}
+
+#custom-update {
+  font-size: 10px;
+}
+
+#clock {
+  margin-left: 5px;
+}
+
+#custom-mail {
+  margin-left: 7.5px;
+}
+
+#custom-spotify {
+  margin: 0 7.5px 0 12px;
+  padding: 0 10px;
+
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 2px;
+}
+
+#custom-spotify.spotify {
+  background-image:
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p0 {
+  background-image:
+    linear-gradient(to right,
+      transparent 0%,
+      transparent 0%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p5 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 5%,
+      transparent 5%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p10 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 10%,
+      transparent 10%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p15 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 15%,
+      transparent 15%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p20 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 20%,
+      transparent 20%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p25 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 25%,
+      transparent 25%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p30 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 30%,
+      transparent 30%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p35 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 35%,
+      transparent 35%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p40 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 40%,
+      transparent 40%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p45 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 45%,
+      transparent 45%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p50 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 50%,
+      transparent 50%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p55 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 55%,
+      transparent 55%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p60 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 60%,
+      transparent 60%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p65 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 65%,
+      transparent 65%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p70 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 70%,
+      transparent 70%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p75 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 75%,
+      transparent 75%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p80 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 80%,
+      transparent 80%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p85 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 85%,
+      transparent 85%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p90 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 90%,
+      transparent 90%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p95 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 95%,
+      transparent 95%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+#custom-spotify.spotify.p100 {
+  background-image:
+    linear-gradient(to right,
+      #1db954 0%,
+      #1db954 100%,
+      transparent 100%),
+    linear-gradient(to right,
+      alpha(@foreground, 0.18) 0%,
+      alpha(@foreground, 0.18) 100%);
+}
+
+.hidden {
+  opacity: 0;
+}
+
+#custom-screenrecording-indicator {
+  min-width: 12px;
+  margin-left: 5px;
+  font-size: 10px;
+  padding-bottom: 1px;
+}
+
+#custom-screenrecording-indicator.active {
+  color: #a55555;
+}
+
+#custom-voxtype {
+  min-width: 12px;
+  margin: 0 0 0 7.5px;
+}
+
+#custom-voxtype.recording {
+  color: #a55555;
+}

@@ -1,0 +1,16 @@
+# alot config
+# This repo is managed with GNU Stow. Symlink this package to ~/.config/alot/config.
+#
+# For gmailieer (gmi): the local notmuch tag that maps to Gmail TRASH is `trash` (lowercase).
+# Avoid using `Trash` (capital T) as it is reserved/ignored by gmailieer.
+
+[bindings]
+    # In search mode, operate on the selected thread.
+    [[search]]
+        d = tag trash; untag inbox
+        , = select; pipeto --format=raw --separately --background /home/gzg/.local/bin/alot-open-message-html; bclose
+
+    # In thread mode, apply to all messages in the thread.
+    [[thread]]
+        D = tag --all trash; untag --all inbox
+        , = pipeto --format=raw --separately --background /home/gzg/.local/bin/alot-open-message-html

@@ -12,10 +12,10 @@
       "model": "openai/gpt-5.2-medium"
     },
     "frontend-ui-ux-engineer": {
-      "model": "google/gemini-3-pro-high"
+      "model": "openai/gpt-5.2-high"
     },
     "document-writer": {
-      "model": "github-copilot/gemini-3-flash-preview"
+      "model": "openai/gpt-5.2-high"
     },
     "multimodal-looker": {
       "model": "github-copilot/gemini-2.5-pro"

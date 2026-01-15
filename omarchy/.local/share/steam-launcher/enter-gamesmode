@@ -1,0 +1,499 @@
+#!/bin/bash
+set -Euo pipefail
+STATE_DIR="$HOME/.cache/gaming-session"
+LOCK_FILE="$STATE_DIR/idle-prevention.lock"
+SESSION_FILE="$STATE_DIR/session.pid"
+CONFIG_FILE="/etc/gaming-mode.conf"
+[[ -f "$HOME/.gaming-mode.conf" ]] && CONFIG_FILE="$HOME/.gaming-mode.conf"
+source "$CONFIG_FILE" 2>/dev/null || true
+# Set defaults for any unset variables (works even if config partially defines them)
+: "${STEAM_LAUNCH_MODE:=bigpicture}"
+: "${PERFORMANCE_MODE:=enabled}"
+
+# Cleanup function to restore system state on failure
+cleanup_on_error() {
+  echo "[!] Error occurred, restoring system state..." >&2
+
+  # Restore CPU governor
+  if [[ -f "$STATE_DIR/original_governors" ]]; then
+    while IFS=: read -r cpu_path original_gov; do
+      [[ -z "$cpu_path" || -z "$original_gov" || "$original_gov" == "unknown" ]] && continue
+      if [[ -f "$cpu_path" ]]; then
+        echo "$original_gov" > "$cpu_path" 2>/dev/null || \
+          echo "$original_gov" | sudo tee "$cpu_path" >/dev/null 2>&1 || true
+      fi
+    done < "$STATE_DIR/original_governors"
+    rm -f "$STATE_DIR/original_governors"
+  fi
+
+  # Restore GPU performance mode
+  if [[ -f "$STATE_DIR/gpu_perf_mode" ]]; then
+    while IFS=: read -r gpu_path original_mode; do
+      [[ -z "$gpu_path" || -z "$original_mode" ]] && continue
+      [[ "$original_mode" == "nvidia_optimized" || "$original_mode" == "amd_optimized" || "$original_mode" == "xe_optimized" ]] && continue
+      if [[ -f "$gpu_path" ]]; then
+        echo "$original_mode" > "$gpu_path" 2>/dev/null || \
+          echo "$original_mode" | sudo tee "$gpu_path" >/dev/null 2>&1 || true
+      fi
+    done < "$STATE_DIR/gpu_perf_mode"
+    # Restore NVIDIA settings
+    if grep -q "nvidia_optimized" "$STATE_DIR/gpu_perf_mode" 2>/dev/null; then
+      command -v nvidia-settings >/dev/null 2>&1 && nvidia-settings -a "[gpu:0]/GpuPowerMizerMode=0" >/dev/null 2>&1 || true
+      command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -pm 0 >/dev/null 2>&1 || true
+    fi
+    rm -f "$STATE_DIR/gpu_perf_mode"
+  fi
+
+  # Restart hypridle only if it was running before gaming mode
+  if [[ -f "$STATE_DIR/hypridle_state" ]]; then
+    if [[ "$(cat "$STATE_DIR/hypridle_state" 2>/dev/null)" == "running" ]]; then
+      if command -v hypridle >/dev/null 2>&1 && ! pgrep -x hypridle >/dev/null 2>&1; then
+        nohup hypridle >/dev/null 2>&1 &
+        disown
+      fi
+    fi
+    rm -f "$STATE_DIR/hypridle_state"
+  fi
+
+  # Clean up state files
+  rm -f "$LOCK_FILE" "$SESSION_FILE" 2>/dev/null || true
+}
+
+# Set trap to cleanup on any error
+trap cleanup_on_error ERR
+
+steam_icon() { echo "steam"; }
+
+# Helper function to center output in terminal
+center_output() {
+  local width=${1:-70}
+  local term_width=$(tput cols)
+  local padding=$(( (term_width - width) / 2 ))
+  [[ $padding -lt 0 ]] && padding=0
+  while IFS= read -r line; do
+    printf "%${padding}s%s\n" "" "$line"
+  done
+}
+
+center_notify() {
+  local msg="$*"
+  # TUI notification using gum - centered (uses terminal theme colors)
+  clear
+  local term_width=$(tput cols)
+  local box_width=50
+  local padding=$(( (term_width - box_width) / 2 ))
+  [[ $padding -lt 0 ]] && padding=0
+  echo ""
+  gum style --align center --width 50 --border normal --padding "1 2" "$msg" | while IFS= read -r line; do printf "%${padding}s%s\\n" "" "$line"; done
+  sleep 2
+}
+
+get_display() {
+  local j; j="$(hyprctl monitors -j 2>/dev/null || true)"
+  if [[ -z "$j" ]]; then echo "1920 1080 60"; return; fi
+  echo "$j" | python3 -c "
+import json,sys
+try:
+  d=json.load(sys.stdin); m=d[0] if d else {}
+  print(int(m.get('width',1920)), int(m.get('height',1080)), int(round(m.get('refreshRate',60))))
+except Exception:
+  print('1920 1080 60')
+"
+}
+
+read -r horizontal_res vertical_res monitor_hz <<<"$(get_display)"
+DISPLAY_WIDTH="$horizontal_res"; DISPLAY_HEIGHT="$vertical_res"; REFRESH_RATE="$monitor_hz"
+
+# Detect system theme and set gum colors to match Omarchy theme
+detect_system_theme() {
+  local omarchy_theme_dir="$HOME/.config/omarchy/current/theme"
+  local ghostty_conf="$omarchy_theme_dir/ghostty.conf"
+
+  # Default colors (fallback)
+  local accent_color="6"      # Cyan (ANSI color 6)
+  local border_color="7"      # White/light gray
+  local cursor_color="6"      # Cyan
+
+  # Read colors from Omarchy ghostty theme if available
+  if [[ -f "$ghostty_conf" ]]; then
+    # Extract accent color (use palette 6 or 2 as accent - typically cyan/green)
+    local palette_6=$(grep "^palette = 6=" "$ghostty_conf" 2>/dev/null | cut -d'=' -f3 | tr -d ' #')
+    local palette_2=$(grep "^palette = 2=" "$ghostty_conf" 2>/dev/null | cut -d'=' -f3 | tr -d ' #')
+
+    if [[ -n "$palette_6" ]]; then
+      # Convert hex to gum color (use the hex directly)
+      accent_color="#$palette_6"
+      cursor_color="#$palette_6"
+    elif [[ -n "$palette_2" ]]; then
+      accent_color="#$palette_2"
+      cursor_color="#$palette_2"
+    fi
+
+    # Get foreground color for borders
+    local fg_color=$(grep "^foreground = " "$ghostty_conf" 2>/dev/null | cut -d'=' -f2 | tr -d ' ')
+    if [[ -n "$fg_color" ]]; then
+      border_color="$fg_color"
+    fi
+  fi
+
+  # Set gum environment variables to match theme
+  export GUM_CHOOSE_CURSOR_FOREGROUND="$cursor_color"
+  export GUM_CHOOSE_SELECTED_FOREGROUND="$accent_color"
+  export GUM_STYLE_BORDER_FOREGROUND="$border_color"
+  export GUM_SPIN_SPINNER_FOREGROUND="$accent_color"
+}
+
+detect_system_theme
+
+# Check if previous settings exist
+SETTINGS_FILE="$STATE_DIR/last-settings"
+USE_PREVIOUS=false
+
+# Initialize padding for centering (used in all paths)
+term_width=$(tput cols)
+menu_width=75
+menu_pad=$(( (term_width - menu_width) / 2 ))
+[[ $menu_pad -lt 0 ]] && menu_pad=0
+pad_str=$(printf "%${menu_pad}s" "")
+
+clear
+echo ""
+gum style --align center --width 70 --border double --padding "1 2" $'W.O.P.R\n\nShall we play a game?' | center_output 74
+
+if [[ -f "$SETTINGS_FILE" ]]; then
+  # Ask user if they want to use previous settings
+  echo ""
+  gum style --align center --width 70 --bold "Previous settings found." | center_output 70
+  echo ""
+
+  # Calculate padding for confirm dialog
+  term_width=$(tput cols)
+  confirm_width=40
+  confirm_pad=$(( (term_width - confirm_width) / 2 ))
+  [[ $confirm_pad -lt 0 ]] && confirm_pad=0
+  confirm_pad_str=$(printf "%${confirm_pad}s" "")
+
+  gum style --align center --width 70 "Use previous settings?" | center_output 70
+  echo ""
+
+  CONFIRM_CHOICE=$(gum choose --height 6 \
+    "${confirm_pad_str}Yes - Use previous settings" \
+    "${confirm_pad_str}No - Configure new settings") || CONFIRM_CHOICE=""
+
+  if [[ "$CONFIRM_CHOICE" == *"Yes"* ]]; then
+    USE_PREVIOUS=true
+    source "$SETTINGS_FILE"
+  else
+    USE_PREVIOUS=false
+  fi
+fi
+
+if [[ "$USE_PREVIOUS" == false ]]; then
+  # Show resolution selection menu
+  clear
+  echo ""
+  gum style --align center --width 70 --border double --padding "1 2" "🎮 Gaming Mode - Resolution Settings" | center_output 74
+  echo ""
+  gum style --align center --width 70 --faint "Current Display: ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT} @ ${REFRESH_RATE}Hz" | center_output 70
+  echo ""
+  gum style --align center --width 70 "Select your preferred gaming resolution:" | center_output 70
+  echo ""
+
+  # Format native resolution option to align with others (30 chars before │)
+  native_res="${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}"
+  native_option=$(printf "%-30s" "$native_res")
+
+  RESOLUTION_CHOICE=$(gum choose --height 12 \
+    "${pad_str}${native_option}│  Render at native resolution (best quality)" \
+    "${pad_str}1440p Upscaled                │  Render at 1080p, upscale to 1440p (better FPS)" \
+    "${pad_str}1440p (2560x1440)             │  Render at 1440p resolution" \
+    "${pad_str}UHD Upscaled                  │  Render at 1440p, upscale to 4K (balanced)" \
+    "${pad_str}UHD (3840x2160)               │  Render at 4K/UHD resolution") || {
+    center_notify "Gaming Mode cancelled"
+    exit 0
+  }
+
+  # If user cancelled, exit
+  if [[ -z "$RESOLUTION_CHOICE" ]]; then
+    center_notify "Gaming Mode cancelled"
+    exit 0
+  fi
+
+  # Extract just the resolution name (before the │), removing padding
+  RESOLUTION_CHOICE=$(echo "$RESOLUTION_CHOICE" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*│.*//' | xargs)
+
+  # Convert native resolution to standard format for matching
+  if [[ "$RESOLUTION_CHOICE" == "${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}" ]]; then
+    RESOLUTION_CHOICE="Native (${DISPLAY_WIDTH}x${DISPLAY_HEIGHT})"
+  fi
+
+  # Show MangoHud preset selection
+  clear
+  echo ""
+  gum style --align center --width 70 --border double --padding "1 2" "🎮 Gaming Mode - MangoHud Settings" | center_output 74
+  echo ""
+  gum style --align center --width 70 "Select your preferred performance overlay:" | center_output 70
+  echo ""
+
+  MANGOHUD_CHOICE=$(gum choose --height 10 \
+    "${pad_str}Off         │  No performance overlay (cleanest view)" \
+    "${pad_str}Minimal     │  FPS counter only (recommended)" \
+    "${pad_str}Full Stats  │  Detailed metrics (CPU, GPU, temps, frametime)") || {
+    center_notify "Gaming Mode cancelled"
+    exit 0
+  }
+
+  # If user cancelled, exit
+  if [[ -z "$MANGOHUD_CHOICE" ]]; then
+    center_notify "Gaming Mode cancelled"
+    exit 0
+  fi
+
+  # Extract just the preset name (before the │), removing padding
+  MANGOHUD_CHOICE=$(echo "$MANGOHUD_CHOICE" | sed 's/^[[:space:]]*//' | sed 's/  │.*//' | xargs)
+
+  # Save settings for next time
+  mkdir -p "$STATE_DIR"
+  cat > "$SETTINGS_FILE" <<SETTINGS
+RESOLUTION_CHOICE="$RESOLUTION_CHOICE"
+MANGOHUD_CHOICE="$MANGOHUD_CHOICE"
+SETTINGS
+
+fi
+
+# Set game rendering and output resolution based on choice
+game_width="$DISPLAY_WIDTH"
+game_height="$DISPLAY_HEIGHT"
+output_width="$DISPLAY_WIDTH"
+output_height="$DISPLAY_HEIGHT"
+
+case "$RESOLUTION_CHOICE" in
+  "Native (${DISPLAY_WIDTH}x${DISPLAY_HEIGHT})")
+    game_width="$DISPLAY_WIDTH"
+    game_height="$DISPLAY_HEIGHT"
+    output_width="$DISPLAY_WIDTH"
+    output_height="$DISPLAY_HEIGHT"
+    ;;
+  "UHD (3840x2160)")
+    game_width=3840
+    game_height=2160
+    output_width=3840
+    output_height=2160
+    ;;
+  "UHD Upscaled")
+    game_width=2560
+    game_height=1440
+    output_width=3840
+    output_height=2160
+    ;;
+  "1440p (2560x1440)")
+    game_width=2560
+    game_height=1440
+    output_width=2560
+    output_height=1440
+    ;;
+  "1440p Upscaled")
+    game_width=1920
+    game_height=1080
+    output_width=2560
+    output_height=1440
+    ;;
+esac
+
+mkdir -p "$STATE_DIR"
+: > "$LOCK_FILE"
+
+# Save hypridle state and terminate if running
+if pgrep -x hypridle >/dev/null 2>&1; then
+  # Mark that hypridle was running so we can restore it later
+  echo "running" > "$STATE_DIR/hypridle_state"
+
+  pkill hypridle 2>/dev/null
+  # Wait up to 2 seconds for graceful shutdown
+  for i in {1..4}; do
+    sleep 0.5
+    pgrep -x hypridle >/dev/null 2>&1 || break
+  done
+  # Force kill if still running
+  pkill -9 hypridle 2>/dev/null || true
+else
+  # Mark that hypridle was not running
+  echo "stopped" > "$STATE_DIR/hypridle_state"
+fi
+
+# ===== CPU GOVERNOR OPTIMIZATION =====
+# Set CPU to performance mode for lower latency and consistent frame times
+if [[ -d /sys/devices/system/cpu/cpu0/cpufreq ]]; then
+  # Save current governor for each CPU (handles hybrid CPUs with different governors)
+  : > "$STATE_DIR/original_governors"
+  for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    if [[ -f "$cpu" ]]; then
+      current_gov=$(cat "$cpu" 2>/dev/null || echo "unknown")
+      echo "$cpu:$current_gov" >> "$STATE_DIR/original_governors"
+    fi
+  done
+
+  # Set all CPUs to performance mode
+  for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    if [[ -f "$cpu" ]]; then
+      if [[ -w "$cpu" ]]; then
+        echo performance > "$cpu" 2>/dev/null || \
+          echo performance | sudo tee "$cpu" >/dev/null 2>&1
+      else
+        echo performance | sudo tee "$cpu" >/dev/null 2>&1 || true
+      fi
+    fi
+  done
+fi
+
+# ===== GPU PERFORMANCE MODE =====
+# Force GPU to maximum clocks for stable performance
+# Initialize GPU state file (clear any old data)
+: > "$STATE_DIR/gpu_perf_mode"
+
+GPU_VENDOR=$(lspci 2>/dev/null | grep -iE 'vga|3d|display' || echo "")
+
+# Detect all GPU types
+HAS_AMD=false
+HAS_NVIDIA=false
+HAS_INTEL=false
+
+echo "$GPU_VENDOR" | grep -iqE 'amd|radeon|advanced micro' && HAS_AMD=true
+echo "$GPU_VENDOR" | grep -iq nvidia && HAS_NVIDIA=true
+echo "$GPU_VENDOR" | grep -iq intel && HAS_INTEL=true
+
+# AMD GPU optimization
+if $HAS_AMD; then
+  for gpu in /sys/class/drm/card*/device/power_dpm_force_performance_level; do
+    if [[ -f "$gpu" ]]; then
+      # Save current mode
+      current_mode=$(cat "$gpu" 2>/dev/null || echo "auto")
+      echo "$gpu:$current_mode" >> "$STATE_DIR/gpu_perf_mode"
+
+      # Set to high performance
+      if [[ -w "$gpu" ]]; then
+        echo high > "$gpu" 2>/dev/null || \
+          echo high | sudo tee "$gpu" >/dev/null 2>&1
+      fi
+    fi
+  done
+  echo "amd_optimized" >> "$STATE_DIR/gpu_perf_mode"
+fi
+
+# NVIDIA GPU optimization
+if $HAS_NVIDIA; then
+  # nvidia-settings requires X display, may not work on pure Wayland
+  if command -v nvidia-settings >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+    # Set PowerMizer to max performance (mode 1)
+    if nvidia-settings -a "[gpu:0]/GpuPowerMizerMode=1" >/dev/null 2>&1; then
+      echo "nvidia_optimized" >> "$STATE_DIR/gpu_perf_mode"
+    fi
+  fi
+  # Also try nvidia-smi for persistence mode (doesn't require display)
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    nvidia-smi -pm 1 >/dev/null 2>&1 || true
+  fi
+fi
+
+# ===== INTEL GPU OPTIMIZATION (XE DRIVER ONLY) =====
+# IMPORTANT: This section ONLY optimizes Intel GPUs using the xe driver (Arc GPUs)
+# It IGNORES i915 GPUs (integrated graphics) to prevent conflicts
+# DISABLED: xe driver optimization causes visual glitches on Arc B580 with kernel 6.17
+# The xe driver power management is not mature enough for forced always-on mode
+if $HAS_INTEL; then
+  # Check each Intel card to see which driver it uses
+  for card_device in /sys/class/drm/card*/device/driver; do
+    if [[ -L "$card_device" ]]; then
+      # Get the driver name
+      driver_name=$(basename "$(readlink -f "$card_device")")
+
+      # Only process xe driver cards
+      if [[ "$driver_name" == "xe" ]]; then
+        # Extract card name (e.g., card0)
+        card_path=$(dirname "$(dirname "$card_device")")
+        card_name=$(basename "$card_path")
+
+        echo "# xe driver detected on $card_name - SKIPPED (optimization disabled)" >> "$STATE_DIR/gpu_perf_mode"
+
+        # NOTE: Power management optimization for xe driver is DISABLED
+        # Forcing the GPU to always-on mode causes visual glitches on Arc B580
+        # with kernel 6.17.x. Let the driver manage power automatically.
+        #
+        # This may be revisited when xe driver matures in future kernels.
+
+      elif [[ "$driver_name" == "i915" ]]; then
+        # Explicitly skip i915 cards
+        card_path=$(dirname "$(dirname "$card_device")")
+        card_name=$(basename "$card_path")
+        echo "# i915 driver detected on $card_name - SKIPPED (not optimized)" >> "$STATE_DIR/gpu_perf_mode"
+      fi
+    fi
+  done
+fi
+
+# center_notify "Starting Gamesmode at ${game_width}x${game_height}…"
+
+gamescope_perf=""
+[[ "${PERFORMANCE_MODE,,}" == "enabled" ]] && gamescope_perf="--rt --immediate-flips"
+steam_args=""
+case "${STEAM_LAUNCH_MODE,,}" in
+  gamepadui) steam_args="-gamepadui" ;;
+  bigpicture|"") steam_args="-tenfoot" ;;
+  *) steam_args="-tenfoot" ;;
+esac
+
+# Configure MangoHud based on user choice
+mangohud_flag=""
+mangohud_config=""
+case "$MANGOHUD_CHOICE" in
+  "Off")
+    mangohud_flag=""
+    ;;
+  "Minimal")
+    mangohud_flag="--mangoapp"
+    mangohud_config="fps,fps_only,position=top-left,font_size=24"
+    ;;
+  "Full Stats")
+    mangohud_flag="--mangoapp"
+    mangohud_config="cpu_temp,gpu_temp,cpu_power,gpu_power,ram,vram,fps,frametime,frame_timing=1,gpu_stats,cpu_stats,position=top-left"
+    ;;
+esac
+
+# Show launch status
+clear
+echo ""
+gum style --align center --width 70 --border double --padding "1 2" "🎮 Launching Gaming Mode" | center_output 74
+echo ""
+gum style --align center --width 70 --faint "Resolution: ${game_width}x${game_height}" | center_output 70
+gum style --align center --width 70 --faint "Output: ${output_width}x${output_height}" | center_output 70
+gum style --align center --width 70 --faint "Refresh: ${REFRESH_RATE}Hz" | center_output 70
+gum style --align center --width 70 --faint "MangoHud: ${MANGOHUD_CHOICE}" | center_output 70
+echo ""
+echo "${pad_str}" | tr -d '\\n'
+gum spin --spinner dot --title "Starting gamescope..." -- sleep 2
+
+# Launch gamescope with MangoHud configuration and Gamemode optimizations
+# Gamemode adds: process priority, I/O scheduling, and additional system tweaks
+if [[ -n "$mangohud_config" ]]; then
+  export MANGOHUD_CONFIG="$mangohud_config"
+fi
+setsid gamemoderun /usr/bin/gamescope $gamescope_perf $mangohud_flag -f -w "$game_width" -h "$game_height" -W "$output_width" -H "$output_height" -r "$REFRESH_RATE" -e -- /usr/bin/steam $steam_args &
+
+# Capture the actual PID of our gamescope instance (not all gamescope processes)
+gamescope_pid=$!
+
+# Give gamescope a moment to initialize
+sleep 2
+
+# Verify gamescope started successfully
+if ! kill -0 "$gamescope_pid" 2>/dev/null; then
+  echo "[!] ERROR: Gamescope failed to start!" >&2
+  echo "[!] Restoring system state..." >&2
+  cleanup_on_error
+  exit 1
+fi
+
+# Save our specific gamescope PID for cleanup
+echo "$gamescope_pid" > "$SESSION_FILE"
+
+exit 0

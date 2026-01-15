@@ -1,0 +1,131 @@
+#!/bin/bash
+set -Euo pipefail
+STATE_DIR="$HOME/.cache/gaming-session"
+LOCK_FILE="$STATE_DIR/idle-prevention.lock"
+SESSION_FILE="$STATE_DIR/session.pid"
+
+steam_icon() { echo "steam"; }
+center_notify() {
+  # TUI notification - brief message on exit (uses terminal theme colors)
+  if command -v gum >/dev/null 2>&1; then
+    clear
+    local term_width=$(tput cols)
+    local box_width=50
+    local padding=$(( (term_width - box_width) / 2 ))
+    [[ $padding -lt 0 ]] && padding=0
+    echo ""
+    gum style --align center --width 50 --border normal --padding "1 2" "BACK TO WORK" | while IFS= read -r line; do printf "%${padding}s%s\\n" "" "$line"; done
+    sleep 1
+  else
+    echo "BACK TO WORK"
+    sleep 1
+  fi
+}
+
+# First, gracefully terminate Steam to allow it to save state
+if pgrep -x steam >/dev/null 2>&1; then
+  pkill -TERM steam 2>/dev/null
+  # Wait up to 3 seconds for graceful shutdown
+  for i in {1..6}; do
+    sleep 0.5
+    pgrep -x steam >/dev/null 2>&1 || break
+  done
+  # Force kill if still running
+  pkill -9 steam 2>/dev/null || true
+fi
+
+# Kill any remaining Steam processes (reaper, fossilize, etc.)
+pkill -9 -f "steam" 2>/dev/null || true
+
+# Terminate gamescope (this should also kill Steam if it's still inside)
+if [[ -f "$SESSION_FILE" ]]; then
+  PID="$(cat "$SESSION_FILE" 2>/dev/null || true)"
+  if [[ -n "$PID" ]] && kill -0 "$PID" 2>/dev/null; then
+    kill "$PID" 2>/dev/null || true
+    # Wait up to 2 seconds for graceful shutdown
+    for i in {1..4}; do
+      sleep 0.5
+      kill -0 "$PID" 2>/dev/null || break
+    done
+    # Force kill if still running
+    kill -9 "$PID" 2>/dev/null || true
+  fi
+fi
+
+# Gracefully terminate gamescope with proper verification
+if pgrep -x gamescope >/dev/null 2>&1; then
+  pkill gamescope 2>/dev/null
+  # Wait up to 2 seconds for graceful shutdown
+  for i in {1..4}; do
+    sleep 0.5
+    pgrep -x gamescope >/dev/null 2>&1 || break
+  done
+  # Force kill if still running
+  pkill -9 gamescope 2>/dev/null || true
+fi
+
+# ===== RESTORE CPU GOVERNOR =====
+if [[ -f "$STATE_DIR/original_governors" ]]; then
+  while IFS=: read -r cpu_path original_gov; do
+    [[ -z "$cpu_path" || -z "$original_gov" || "$original_gov" == "unknown" ]] && continue
+    if [[ -f "$cpu_path" ]]; then
+      if [[ -w "$cpu_path" ]]; then
+        echo "$original_gov" > "$cpu_path" 2>/dev/null || \
+          echo "$original_gov" | sudo tee "$cpu_path" >/dev/null 2>&1
+      else
+        echo "$original_gov" | sudo tee "$cpu_path" >/dev/null 2>&1 || true
+      fi
+    fi
+  done < "$STATE_DIR/original_governors"
+  rm -f "$STATE_DIR/original_governors"
+fi
+
+# ===== RESTORE GPU PERFORMANCE MODE =====
+if [[ -f "$STATE_DIR/gpu_perf_mode" ]]; then
+  while IFS=: read -r gpu_path original_mode; do
+    # Skip empty or malformed lines
+    [[ -z "$gpu_path" || -z "$original_mode" ]] && continue
+
+    # Skip marker lines and comments
+    [[ "$original_mode" == "nvidia_optimized" || "$original_mode" == "amd_optimized" || "$original_mode" == "xe_optimized" ]] && continue
+    [[ "$gpu_path" == "#"* ]] && continue
+
+    if [[ -f "$gpu_path" ]]; then
+      if [[ -w "$gpu_path" ]]; then
+        echo "$original_mode" > "$gpu_path" 2>/dev/null || \
+          echo "$original_mode" | sudo tee "$gpu_path" >/dev/null 2>&1
+      fi
+    fi
+  done < "$STATE_DIR/gpu_perf_mode"
+
+  # Restore NVIDIA settings if they were changed
+  if grep -q "nvidia_optimized" "$STATE_DIR/gpu_perf_mode" 2>/dev/null; then
+    if command -v nvidia-settings >/dev/null 2>&1; then
+      # Set back to Adaptive mode (0)
+      nvidia-settings -a "[gpu:0]/GpuPowerMizerMode=0" >/dev/null 2>&1
+    fi
+    # Disable persistence mode
+    if command -v nvidia-smi >/dev/null 2>&1; then
+      nvidia-smi -pm 0 >/dev/null 2>&1 || true
+    fi
+  fi
+
+  rm -f "$STATE_DIR/gpu_perf_mode"
+fi
+
+# ===== RESTART HYPRIDLE =====
+# Restart hypridle only if it was running before gaming mode
+if [[ -f "$STATE_DIR/hypridle_state" ]]; then
+  if [[ "$(cat "$STATE_DIR/hypridle_state" 2>/dev/null)" == "running" ]]; then
+    if command -v hypridle >/dev/null 2>&1; then
+      # Check if hypridle is not already running
+      if ! pgrep -x hypridle >/dev/null 2>&1; then
+        nohup hypridle >/dev/null 2>&1 &
+        disown
+      fi
+    fi
+  fi
+  rm -f "$STATE_DIR/hypridle_state"
+fi
+
+rm -f "$LOCK_FILE" "$SESSION_FILE" 2>/dev/null || true

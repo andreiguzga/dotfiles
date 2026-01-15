@@ -127,6 +127,10 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/linux:$PATH"
   export ANDROID_HOME=$HOME/Android/Sdk
   export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+
+  # fzf shell integration
+  source /usr/share/fzf/key-bindings.zsh
+  source /usr/share/fzf/completion.zsh
 fi
 
 # Common paths (both OS)

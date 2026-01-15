@@ -30,3 +30,11 @@ vim.api.nvim_set_keymap('v', '<C-p>', '"_dP', { noremap = true, silent = true })
 -- Lazygit
 -- Open Lazygit in a floating terminal
 vim.keymap.set('n', '<leader>gg', '<cmd>LazyGit<CR>', { desc = 'Open LazyGit' })
+
+vim.keymap.set('n', '<leader>yr', function()
+  vim.fn.setreg('+', vim.fn.expand('%'))
+end, { desc = 'Copy relative path' })
+
+vim.keymap.set('n', '<leader>ya', function()
+  vim.fn.setreg('+', vim.fn.expand('%:p'))
+end, { desc = 'Copy absolute path' })

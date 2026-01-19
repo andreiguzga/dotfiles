@@ -1,0 +1,132 @@
+# Tokyo Night theme for alot
+# Based on https://github.com/enkia/tokyo-night-vscode-theme
+# Colors matched to omarchy tokyo-night theme
+
+# Base colors
+256_bg = '#1a1b26'
+256_fg = '#a9b1d6'
+256_fg_bright = '#c0caf5'
+256_accent = '#7aa2f7'
+256_selection = '#33467c'
+
+# Palette
+256_red = '#f7768e'
+256_green = '#9ece6a'
+256_yellow = '#e0af68'
+256_blue = '#7aa2f7'
+256_magenta = '#bb9af7'
+256_cyan = '#7dcfff'
+256_orange = '#ff9e64'
+
+# Muted/dark variants
+256_bg_highlight = '#292e42'
+256_comment = '#565f89'
+256_dark = '#32344a'
+
+# 16-color fallbacks
+16_bg = 'default'
+16_fg = 'white'
+16_fg_bright = 'white'
+16_accent = 'light blue'
+16_red = 'light red'
+16_green = 'light green'
+16_yellow = 'yellow'
+16_blue = 'light blue'
+16_magenta = 'light magenta'
+16_cyan = 'light cyan'
+16_comment = 'dark gray'
+16_bg_highlight = 'dark gray'
+
+[global]
+    footer = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_bg_highlight)s'
+    body = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    notify_error = 'standout','default','%(16_fg)s','%(16_red)s','%(256_fg_bright)s','%(256_red)s'
+    notify_normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+    prompt = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg_bright)s','%(256_bg_highlight)s'
+    tag = 'default','default','%(16_cyan)s','%(16_bg)s','%(256_cyan)s','%(256_bg)s'
+    tag_focus = 'standout','default','%(16_bg)s','%(16_cyan)s','%(256_bg)s','%(256_cyan)s'
+
+[help]
+    text = 'default','default','%(16_fg)s','%(16_bg_highlight)s','%(256_fg)s','%(256_bg)s'
+    section = 'underline','default','%(16_cyan)s','%(16_bg_highlight)s','%(256_cyan)s,bold','%(256_bg)s'
+    title = 'standout','default','%(16_yellow)s','%(16_bg_highlight)s','%(256_yellow)s','%(256_bg_highlight)s'
+    frame = 'standout','default','%(16_comment)s','%(16_bg_highlight)s','%(256_comment)s','%(256_bg_highlight)s'
+
+[namedqueries]
+    line_focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+    line_even = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    line_odd = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+
+[taglist]
+    line_focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+    line_even = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    line_odd = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+
+[bufferlist]
+    line_focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+    line_even = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    line_odd = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+
+[thread]
+    attachment = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    attachment_focus = 'underline','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+    body = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    body_focus = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+    arrow_bars = 'default','default','%(16_comment)s','%(16_bg)s','%(256_comment)s','%(256_bg)s'
+    arrow_heads = 'default','default','%(16_accent)s','%(16_bg)s','%(256_accent)s','%(256_bg)s'
+    header = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+    header_key = 'default','default','%(16_magenta)s','%(16_bg)s','%(256_magenta)s','%(256_bg_highlight)s'
+    header_value = 'default','default','%(16_blue)s','%(16_bg)s','%(256_blue)s','%(256_bg_highlight)s'
+    [[summary]]
+        odd = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+        even = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+        focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+
+[envelope]
+    body = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+    header = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg_highlight)s'
+    header_key = 'default','default','%(16_magenta)s','%(16_bg)s','%(256_magenta)s','%(256_bg_highlight)s'
+    header_value = 'default','default','%(16_blue)s','%(16_bg)s','%(256_blue)s','%(256_bg_highlight)s'
+
+[search]
+    [[threadline]]
+        normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+        focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+        parts = date,mailcount,tags,authors,subject
+        [[[date]]]
+            normal = 'default','default','%(16_comment)s','%(16_bg)s','%(256_comment)s','%(256_bg)s'
+            focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg)s','%(256_selection)s'
+        [[[mailcount]]]
+            normal = 'default','default','%(16_yellow)s','%(16_bg)s','%(256_orange)s','%(256_bg)s'
+            focus = 'standout','default','%(16_yellow)s','%(16_accent)s','%(256_orange)s','%(256_selection)s'
+        [[[tags]]]
+            normal = 'bold','default','%(16_cyan)s','%(16_bg)s','%(256_cyan)s','%(256_bg)s'
+            focus = 'standout','default','%(16_cyan)s','%(16_accent)s','%(256_cyan)s','%(256_selection)s'
+        [[[authors]]]
+            normal = 'default','default','%(16_green)s','%(16_bg)s','%(256_green)s','%(256_bg)s'
+            focus = 'standout','default','%(16_green)s','%(16_accent)s','%(256_green)s','%(256_selection)s'
+            width = 'fit',0,30
+        [[[subject]]]
+            normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+            focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg_bright)s','%(256_selection)s'
+            width = 'weight',1
+        [[[content]]]
+            normal = 'default','default','%(16_comment)s','%(16_bg)s','%(256_comment)s','%(256_bg)s'
+            focus = 'standout','default','%(16_fg)s','%(16_accent)s','%(256_fg)s','%(256_selection)s'
+
+    [[threadline-unread]]
+        normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg_bright)s','%(256_bg)s'
+        tagged_with = 'unread'
+        [[[date]]]
+            normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'
+        [[[mailcount]]]
+            normal = 'default','default','%(16_red)s','%(16_bg)s','%(256_red)s','%(256_bg)s'
+            focus = 'default','default','%(16_red)s','%(16_accent)s','%(256_red)s','%(256_selection)s'
+        [[[tags]]]
+            normal = 'bold','default','%(16_cyan)s','%(16_bg)s','%(256_cyan)s','%(256_bg)s'
+        [[[authors]]]
+            normal = 'default','default','%(16_green)s','%(16_bg)s','%(256_green)s','%(256_bg)s'
+        [[[subject]]]
+            normal = 'bold','default','%(16_fg)s','%(16_bg)s','%(256_fg_bright)s','%(256_bg)s'
+        [[[content]]]
+            normal = 'default','default','%(16_fg)s','%(16_bg)s','%(256_fg)s','%(256_bg)s'

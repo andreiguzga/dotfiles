@@ -4,6 +4,14 @@
 # For gmailieer (gmi): the local notmuch tag that maps to Gmail TRASH is `trash` (lowercase).
 # Avoid using `Trash` (capital T) as it is reserved/ignored by gmailieer.
 
+theme = tokyo-night
+
+[accounts]
+    [[gmail]]
+        realname = Guzga Marian Andrei
+        address = shhican@gmail.com
+        sendmail_command = gmi send -t -C ~/.mail/shhican.gmail
+
 [bindings]
     # In search mode, operate on the selected thread.
     [[search]]
@@ -14,3 +22,4 @@
     [[thread]]
         D = tag --all trash; untag --all inbox
         , = pipeto --format=raw --separately --background /home/gzg/.local/bin/alot-open-message-html
+        u = pipeto urlscan

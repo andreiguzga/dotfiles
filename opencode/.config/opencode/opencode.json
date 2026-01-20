@@ -6,11 +6,14 @@
     "opencode-openai-codex-auth"
   ],
   "permission": {
-    "read": "allow", // Always allow reading files
-    "edit": "ask", // Ask before editing any file
-    "write": "ask", // Ask before writing any file
-    "bash": "ask", // Ask before running bash commands
-    "doom_loop": "deny" // Never allow infinite loops
+    "read": "allow",
+    "list": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "edit": "ask",
+    "write": "ask",
+    "bash": "ask",
+    "doom_loop": "deny"
   },
   "provider": {
     "google": {

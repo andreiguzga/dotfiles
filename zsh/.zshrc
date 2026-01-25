@@ -185,3 +185,5 @@ function y() {
 }
 alias lzd='lazydocker'
 
+
+. "$HOME/.local/share/../bin/env"

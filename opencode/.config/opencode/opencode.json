@@ -168,6 +168,26 @@
           }
         }
       }
+    },
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "devstral": {
+          "name": "Devstral (local)",
+          "limit": {
+            "context": 128000,
+            "output": 65536
+          },
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          }
+        }
+      }
     }
   }
 }

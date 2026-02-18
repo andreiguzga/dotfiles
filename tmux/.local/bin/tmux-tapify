@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Tmux session setup for Tapify project
+# Cross-platform: Works on both macOS and Linux
+
+set -e
+
+# Detect OS and set base directory
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    BASE_DIR="/Users/gzg/Projects/Websites/tapify"
+else
+    # Linux (Omarchy)
+    BASE_DIR="/home/gzg/Projects/tapify"
+fi
+
+SESSION_NAME="Tapify"
+
+# Start Docker containers before creating session
+echo "Starting Docker containers..."
+cd "$BASE_DIR" && docker start mqtt_broker_dev tapify-dev-mysql 2>/dev/null || echo "Note: Containers may already be running or not found"
+
+# Check if session already exists
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    echo "Session '$SESSION_NAME' already exists. Attaching..."
+    tmux attach-session -t "$SESSION_NAME"
+    exit 0
+fi
+
+# Create new session (first pane is automatically pane 1)
+tmux new-session -d -s "$SESSION_NAME" -c "$BASE_DIR"
+
+# ============================================
+# Window 1: Development (dev)
+# Layout: Left (nvim) | Right (opencode top, terminal bottom 5%)
+# ============================================
+tmux rename-window -t "$SESSION_NAME:1" "dev"
+
+# Split to create left and right columns: pane 1 (left), pane 2 (right)
+tmux split-window -h -t "$SESSION_NAME:1.1" -c "$BASE_DIR"
+
+# Split right pane vertically: pane 2 (top), pane 3 (bottom)
+tmux split-window -v -t "$SESSION_NAME:1.2" -c "$BASE_DIR"
+
+# Send commands to specific panes
+tmux send-keys -t "$SESSION_NAME:1.1" "cd $BASE_DIR && nvim" C-m
+tmux send-keys -t "$SESSION_NAME:1.2" "cd $BASE_DIR && opencode" C-m
+
+# ============================================
+# Window 2: Services
+# Layout: Left column (2 panes: api, station) | Right column (3 panes: mobile, dashboard, tap-ui)
+#
+# Right column order from top to bottom:
+# - mobile app (needs more space)
+# - dashboard
+# - tap-ui
+# ============================================
+tmux new-window -t "$SESSION_NAME:2" -n "services" -c "$BASE_DIR"
+
+# Step 1: Split horizontally to create left and right columns
+# Result: pane 1 (left), pane 2 (right)
+tmux split-window -h -t "$SESSION_NAME:2.1" -c "$BASE_DIR"
+
+# Step 2: Build RIGHT column first (3 panes stacked vertically)
+# Split pane 2 to create pane 3 below it
+# Result: pane 1 (left), pane 2 (right top), pane 3 (right middle)
+tmux split-window -v -t "$SESSION_NAME:2.2" -c "$BASE_DIR"
+
+# Split pane 3 to create pane 4 below it
+# Result: pane 1 (left), pane 2 (right top), pane 3 (right middle), pane 4 (right bottom)
+tmux split-window -v -t "$SESSION_NAME:2.3" -c "$BASE_DIR"
+
+# Step 3: Build LEFT column (2 panes)
+# Split pane 1 to create pane 5 below it
+# Result: pane 1 (left top), pane 5 (left bottom), pane 2 (right top), pane 3 (right middle), pane 4 (right bottom)
+tmux split-window -v -t "$SESSION_NAME:2.1" -c "$BASE_DIR"
+
+# Send directory and start commands
+# Left column: pane 1 (tapify-api), pane 2 (tapify-station)
+tmux send-keys -t "$SESSION_NAME:2.1" "cd $BASE_DIR/tapify-api && nvm use 22 && yarn start:dev" C-m
+tmux send-keys -t "$SESSION_NAME:2.2" "cd $BASE_DIR/tapify-station && nvm use 22 && yarn start:dev" C-m
+
+# Right column: pane 3 (tapify-mobile-app), pane 4 (tapify-dashboard), pane 5 (tapify-tap-ui)
+tmux send-keys -t "$SESSION_NAME:2.3" "cd $BASE_DIR/tapify-mobile-app && nvm use 22 && yarn start --clear --dev-client" C-m
+tmux send-keys -t "$SESSION_NAME:2.4" "cd $BASE_DIR/tapify-dashboard && nvm use 22 && yarn dev" C-m
+tmux send-keys -t "$SESSION_NAME:2.5" "cd $BASE_DIR/tapify-tap-ui && nvm use 22 && yarn dev" C-m
+
+# ============================================
+# Window 3: Docker
+# ============================================
+tmux new-window -t "$SESSION_NAME:3" -n "docker" -c "$BASE_DIR"
+tmux send-keys -t "$SESSION_NAME:3.1" "cd $BASE_DIR && lazydocker" C-m
+
+# ============================================
+# Window 4: Database
+# ============================================
+tmux new-window -t "$SESSION_NAME:4" -n "db" -c "$BASE_DIR"
+tmux send-keys -t "$SESSION_NAME:4.1" "cd $BASE_DIR && lazysql" C-m
+
+# Go back to window 1 and attach
+tmux select-window -t "$SESSION_NAME:1"
+tmux attach-session -t "$SESSION_NAME"

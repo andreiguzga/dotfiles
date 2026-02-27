@@ -477,7 +477,7 @@ gum spin --spinner dot --title "Starting gamescope..." -- sleep 2
 if [[ -n "$mangohud_config" ]]; then
   export MANGOHUD_CONFIG="$mangohud_config"
 fi
-setsid gamemoderun /usr/bin/gamescope $gamescope_perf $mangohud_flag -f -w "$game_width" -h "$game_height" -W "$output_width" -H "$output_height" -r "$REFRESH_RATE" -e -- /usr/bin/steam $steam_args &
+setsid /usr/bin/gamescope $gamescope_perf $mangohud_flag -f -w "$game_width" -h "$game_height" -W "$output_width" -H "$output_height" -r "$REFRESH_RATE" -e -- /usr/bin/steam $steam_args &
 
 # Capture the actual PID of our gamescope instance (not all gamescope processes)
 gamescope_pid=$!

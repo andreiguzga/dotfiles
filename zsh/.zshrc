@@ -185,5 +185,9 @@ function y() {
 }
 alias lzd='lazydocker'
 
+tmux() {
+  command tmux -f "$HOME/.tmux.conf" "$@"
+}
+
 
 . "$HOME/.local/share/../bin/env"

@@ -14,16 +14,63 @@ tmuxc() {
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     BASE_DIR="/Users/gzg/Projects/Websites/tapify"
+    STATION_DEPLOY_DIR="$BASE_DIR/tapify-station-deployment"
+    MQTT_CONTAINER="mqtt_broker"
 else
     # Linux (Omarchy)
     BASE_DIR="/home/gzg/Projects/tapify"
+    MQTT_CONTAINER="mqtt_broker_dev"
 fi
 
 SESSION_NAME="Tapify"
 
 # Start Docker containers before creating session
 echo "Starting Docker containers..."
-cd "$BASE_DIR" && docker start mqtt_broker_dev tapify-dev-mysql 2>/dev/null || echo "Note: Containers may already be running or not found"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    (
+        cd "$STATION_DEPLOY_DIR"
+        docker compose up -d mqtt
+    )
+
+    # Verify MQTT broker is healthy by checking recent logs.
+    attempts=0
+    max_attempts=6
+    expected_logs=(
+        "Config loaded from /mosquitto/config/mosquitto.conf."
+        "Opening ipv4 listen socket on port 1883."
+        "Opening websockets listen socket on port 9001."
+        "mosquitto version"
+    )
+
+    until (( attempts >= max_attempts )); do
+        logs="$(docker logs --tail 20 "$MQTT_CONTAINER" 2>&1 || true)"
+        healthy=true
+
+        for expected in "${expected_logs[@]}"; do
+            if [[ "$logs" != *"$expected"* ]]; then
+                healthy=false
+                break
+            fi
+        done
+
+        if [[ "$healthy" == true ]]; then
+            echo "MQTT broker is healthy"
+            break
+        fi
+
+        attempts=$((attempts + 1))
+        sleep 2
+    done
+
+    if (( attempts >= max_attempts )); then
+        echo "Warning: MQTT broker health check did not match expected logs yet"
+        docker logs --tail 20 "$MQTT_CONTAINER" || true
+    fi
+
+    docker start tapify-dev-mysql 2>/dev/null || echo "Note: tapify-dev-mysql may already be running or not found"
+else
+    docker start "$MQTT_CONTAINER" tapify-dev-mysql 2>/dev/null || echo "Note: Containers may already be running or not found"
+fi
 
 # Check if session already exists
 if tmuxc has-session -t "$SESSION_NAME" 2>/dev/null; then

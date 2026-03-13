@@ -117,6 +117,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
   export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
   alias prusa-slicer="/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer"
+  tapify_start() {
+    if [[ -n "$TMUX" ]]; then
+      command "$HOME/.local/bin/tmux-tapify" "$@" || true
+      tmux has-session -t "Tapify" 2>/dev/null && tmux switch-client -t "Tapify"
+    else
+      command "$HOME/.local/bin/tmux-tapify" "$@"
+    fi
+  }
+
+  alias tmux-tapify='tapify_start'
+  alias tt='tapify_start'
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # Linux
   export NVM_DIR="$HOME/.config/nvm"
@@ -190,4 +201,6 @@ tmux() {
 }
 
 
-. "$HOME/.local/share/../bin/env"
+if [[ -f "$HOME/.local/bin/env" ]]; then
+  . "$HOME/.local/bin/env"
+fi

@@ -25,6 +25,18 @@ outer.bottom = 10
 outer.top = 10
 outer.right = 10
 
+# Keep a predictable workspace split across two monitors
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = 'main'
+4 = 'main'
+5 = 'main'
+6 = 'secondary'
+7 = 'secondary'
+8 = 'secondary'
+9 = 'secondary'
+
 # Main keybindings (alt as modifier - similar to Hyprland's Super)
 [mode.main.binding]
 
@@ -50,6 +62,18 @@ alt-shift-f = 'layout floating tiling'
 alt-e = 'layout tiles horizontal vertical'
 alt-shift-e = 'layout accordion horizontal vertical'
 
+# Monitor navigation
+alt-comma = 'focus-monitor prev'
+alt-period = 'focus-monitor next'
+
+# Move window to monitor
+alt-shift-comma = 'move-node-to-monitor --focus-follows-window prev'
+alt-shift-period = 'move-node-to-monitor --focus-follows-window next'
+
+# Move workspace to monitor
+alt-ctrl-comma = 'move-workspace-to-monitor --wrap-around prev'
+alt-ctrl-period = 'move-workspace-to-monitor --wrap-around next'
+
 # Workspaces 1-9
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
@@ -72,6 +96,26 @@ alt-shift-7 = 'move-node-to-workspace 7'
 alt-shift-8 = 'move-node-to-workspace 8'
 alt-shift-9 = 'move-node-to-workspace 9'
 
+# Workspace navigation and monitor movement
+alt-tab = 'workspace-back-and-forth'
+alt-left = 'workspace prev'
+alt-right = 'workspace next'
+alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+alt-shift-left = 'move-node-to-workspace prev'
+alt-shift-right = 'move-node-to-workspace next'
+
+# Window history and swapping
+alt-backtick = 'focus-back-and-forth'
+alt-ctrl-h = 'swap left'
+alt-ctrl-j = 'swap down'
+alt-ctrl-k = 'swap up'
+alt-ctrl-l = 'swap right'
+
+# Layout recovery and utility actions
+alt-shift-minus = 'balance-sizes'
+alt-m = 'macos-native-minimize'
+alt-shift-backslash = 'enable toggle'
+
 # Close window (like Hyprland's killactive)
 alt-q = 'close'
 
@@ -87,6 +131,16 @@ esc = ['reload-config', 'mode main']
 r = ['flatten-workspace-tree', 'mode main']
 f = ['layout floating tiling', 'mode main']
 backspace = ['close-all-windows-but-current', 'mode main']
+
+# Monitor actions from service mode
+comma = ['focus-monitor prev', 'mode main']
+period = ['focus-monitor next', 'mode main']
+shift-comma = ['move-node-to-monitor --focus-follows-window prev', 'mode main']
+shift-period = ['move-node-to-monitor --focus-follows-window next', 'mode main']
+c = ['balance-sizes', 'mode main']
+m = 'macos-native-minimize'
+b = ['focus-back-and-forth', 'mode main']
+d = ['enable toggle', 'mode main']
 
 # Join with adjacent windows
 alt-shift-h = ['join-with left', 'mode main']

@@ -5,7 +5,7 @@
 start-at-login = true
 
 # Keep SketchyBar synced with AeroSpace
-after-startup-command = ['exec-and-forget sketchybar']
+after-startup-command = ['exec-and-forget sketchybar', 'exec-and-forget sketchybar --trigger aerospace_focus_change']
 exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
 
 # Normalizations
@@ -14,7 +14,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 
 # Mouse follows focus
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
-on-focus-changed = ['move-mouse window-lazy-center']
+on-focus-changed = ['move-mouse window-lazy-center', 'exec-and-forget sketchybar --trigger aerospace_focus_change']
 
 # Layout settings
 default-root-container-layout = 'tiles'
@@ -26,7 +26,7 @@ inner.horizontal = 10
 inner.vertical = 10
 outer.left = 10
 outer.bottom = 10
-outer.top = 10
+outer.top = [{ monitor."built-in" = 20 }, { monitor.main = 42 }, 40]
 outer.right = 10
 
 # Keep a predictable workspace split across two monitors

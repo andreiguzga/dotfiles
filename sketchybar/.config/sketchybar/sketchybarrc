@@ -62,9 +62,20 @@ do
 
   chevron="chevron.$did"
   front_app="front_app.$did"
+  media="media.$did"
   clock="clock.$did"
   volume="volume.$did"
   battery="battery.$did"
+  monitor_name="$(aerospace list-monitors --format '%{monitor-id}|%{monitor-name}' 2>/dev/null | sed -n "/^$did|/s/^[^|]*|//p" | sed -n '1p')"
+  media_position=center
+  media_width=240
+
+  case "$monitor_name" in
+    *[Bb]uilt-[Ii]n*)
+      media_position=q
+      media_width=170
+      ;;
+  esac
 
   sketchybar --add item "$chevron" left \
              --set "$chevron" display="$did" icon='|' icon.color=$ACCENT label.drawing=off background.drawing=off icon.padding_left=6 icon.padding_right=8 \
@@ -73,6 +84,10 @@ do
              --subscribe "$front_app" aerospace_workspace_change aerospace_focus_change system_woke
 
   left_items+=("$chevron" "$front_app")
+
+  sketchybar --add item "$media" "$media_position" \
+             --set "$media" display="$did" width="$media_width" icon= icon.padding_left=8 icon.padding_right=6 label.max_chars=34 label.align=left scroll_texts=on script="$PLUGIN_DIR/media.sh" updates=on background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 drawing=off \
+             --subscribe "$media" media_change system_woke
 
   sketchybar --add item "$clock" right \
              --set "$clock" display="$did" update_freq=10 icon=󰃭 script="$PLUGIN_DIR/clock.sh" click_script="open -a Calendar" background.drawing=off \

@@ -68,12 +68,12 @@ do
   battery="battery.$did"
   monitor_name="$(aerospace list-monitors --format '%{monitor-id}|%{monitor-name}' 2>/dev/null | sed -n "/^$did|/s/^[^|]*|//p" | sed -n '1p')"
   media_position=center
-  media_width=240
+  media_width=dynamic
 
   case "$monitor_name" in
     *[Bb]uilt-[Ii]n*)
-      media_position=q
-      media_width=170
+      media_position=e
+      media_width=dynamic
       ;;
   esac
 

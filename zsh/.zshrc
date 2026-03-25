@@ -204,3 +204,6 @@ tmux() {
 if [[ -f "$HOME/.local/bin/env" ]]; then
   . "$HOME/.local/bin/env"
 fi
+
+# Added by Antigravity
+export PATH="/Users/gzg/.antigravity/antigravity/bin:$PATH"

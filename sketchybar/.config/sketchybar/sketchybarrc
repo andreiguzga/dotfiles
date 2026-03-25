@@ -6,6 +6,9 @@ ITEM_BG_ALT=0xff232938
 ACCENT=0xff8aadf4
 TEXT=0xffe5e9f0
 MUTED=0xffaeb6c5
+GRAPH_FILL=0x9928c840
+GRAPH_LINE=0xff28c840
+NET_MAX_BPS=12500000
 
 sketchybar --bar position=top height=28 blur_radius=0 color=$BAR_COLOR display=all topmost=window y_offset=6 padding_left=10 padding_right=10
 
@@ -66,13 +69,20 @@ do
   clock="clock.$did"
   volume="volume.$did"
   battery="battery.$did"
+  cpu="cpu.$did"
+  cpu_graph="cpu.graph.$did"
+  ram="ram.$did"
+  disk="disk.$did"
+  net="net.$did"
+  net_graph="net.graph.$did"
+  bluetooth="bluetooth.$did"
   monitor_name="$(aerospace list-monitors --format '%{monitor-id}|%{monitor-name}' 2>/dev/null | sed -n "/^$did|/s/^[^|]*|//p" | sed -n '1p')"
   media_position=center
   media_width=dynamic
 
   case "$monitor_name" in
-    *[Bb]uilt-[Ii]n*)
-      media_position=e
+    *[Bb]uilt-[Ii]n*|*[Rr]etina*|*Color\ LCD*|*Liquid\ Retina*)
+      media_position=q
       media_width=dynamic
       ;;
   esac
@@ -89,22 +99,36 @@ do
              --set "$media" display="$did" width="$media_width" icon= icon.padding_left=8 icon.padding_right=6 label.max_chars=34 label.align=left scroll_texts=on script="$PLUGIN_DIR/media.sh" updates=on background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 drawing=off \
              --subscribe "$media" media_change system_woke
 
-  sketchybar --add item "$clock" right \
-             --set "$clock" display="$did" update_freq=10 icon=󰃭 script="$PLUGIN_DIR/clock.sh" click_script="open -a Calendar" background.drawing=off \
-             --add item "$volume" right \
-             --set "$volume" display="$did" script="$PLUGIN_DIR/volume.sh" click_script="osascript -e 'set volume output muted not (output muted of (get volume settings))'" background.drawing=off \
-             --subscribe "$volume" volume_change \
-             --add item "$battery" right \
-             --set "$battery" display="$did" update_freq=120 script="$PLUGIN_DIR/battery.sh" background.drawing=off \
-             --subscribe "$battery" system_woke power_source_change
+   sketchybar --add item "$clock" right \
+              --set "$clock" display="$did" update_freq=10 icon=󰃭 script="$PLUGIN_DIR/clock.sh" click_script="open -a Calendar" background.drawing=off \
+              --add item "$volume" right \
+              --set "$volume" display="$did" script="$PLUGIN_DIR/volume.sh" click_script="osascript -e 'set volume output muted not (output muted of (get volume settings))'" background.drawing=off \
+              --subscribe "$volume" volume_change \
+              --add item "$battery" right \
+              --set "$battery" display="$did" update_freq=120 script="$PLUGIN_DIR/battery.sh" background.drawing=off \
+              --subscribe "$battery" system_woke power_source_change \
+              --add item "$cpu" right \
+              --set "$cpu" display="$did" icon="󰻠" update_freq=2 script="$PLUGIN_DIR/cpu.sh $cpu_graph" label="--" background.drawing=off \
+              --add graph "$cpu_graph" right 42 \
+              --set "$cpu_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
+              --add item "$ram" right \
+              --set "$ram" display="$did" icon="󰍛" update_freq=5 script="$PLUGIN_DIR/ram.sh" label="--" background.drawing=off \
+              --add item "$disk" right \
+              --set "$disk" display="$did" icon="󰋊" update_freq=20 script="$PLUGIN_DIR/disk.sh" label="--" background.drawing=off \
+              --add item "$net" right \
+              --set "$net" display="$did" icon="󰖩" update_freq=2 script="$PLUGIN_DIR/net.sh $net_graph $NET_MAX_BPS" click_script="open 'x-apple.systempreferences:com.apple.Network-Settings.extension' || open '/System/Library/PreferencePanes/Network.prefPane'" label="--" background.drawing=off label.max_chars=16 \
+              --add graph "$net_graph" right 42 \
+              --set "$net_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
+              --add item "$bluetooth" right \
+              --set "$bluetooth" display="$did" icon="󰂯" update_freq=15 script="$PLUGIN_DIR/bluetooth.sh" click_script="open 'x-apple.systempreferences:com.apple.BluetoothSettings' || open '/System/Library/PreferencePanes/Bluetooth.prefPane'" label="--" label.max_chars=18 background.drawing=off
 
-  sketchybar --add bracket "left_group.$did" "${left_items[@]}"
+   sketchybar --add bracket "left_group.$did" "${left_items[@]}"
   sketchybar --set "left_group.$did" background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 \
                                  background.padding_left=3 background.padding_right=6
 
-  sketchybar --add bracket "right_group.$did" "$clock" "$volume" "$battery"
-  sketchybar --set "right_group.$did" background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 \
-                                  background.padding_left=3 background.padding_right=3
+    sketchybar --add bracket "right_group.$did" "$clock" "$volume" "$battery" "$cpu" "$cpu_graph" "$ram" "$disk" "$net" "$net_graph" "$bluetooth"
+    sketchybar --set "right_group.$did" background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 \
+                                    background.padding_left=3 background.padding_right=3
 done
 
 sketchybar --update

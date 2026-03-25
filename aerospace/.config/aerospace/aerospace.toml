@@ -18,7 +18,7 @@ on-focus-changed = ['move-mouse window-lazy-center', 'exec-and-forget sketchybar
 
 # Layout settings
 default-root-container-layout = 'tiles'
-default-root-container-orientation = 'auto'
+default-root-container-orientation = 'horizontal'
 
 # Gaps between windows
 [gaps]
@@ -117,6 +117,7 @@ alt-ctrl-l = 'swap right'
 
 # Layout recovery and utility actions
 alt-shift-minus = 'balance-sizes'
+alt-shift-c = ['flatten-workspace-tree', 'layout tiles horizontal', 'balance-sizes']
 alt-m = 'macos-native-minimize'
 alt-shift-backslash = 'enable toggle'
 

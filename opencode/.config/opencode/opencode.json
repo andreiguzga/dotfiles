@@ -11,6 +11,13 @@
     "bash": "ask",
     "doom_loop": "deny"
   },
+  "mcp": {
+    "atlassian": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "enabled": true
+    }
+  },
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -34,4 +41,3 @@
     }
   }
 }
-

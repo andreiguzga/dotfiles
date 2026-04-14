@@ -6,6 +6,31 @@ background-blur-radius = 15
 window-padding-x = 6
 window-padding-y = 6
 cursor-style = block
+shell-integration-features = no-cursor
+
+# Custom cursor shaders
+custom-shader-animation = true
+# custom-shader = shaders/cursor_blaze.glsl
+# custom-shader = shaders/cursor_blaze_no_trail.glsl
+# custom-shader = shaders/cursor_blaze_tapered.glsl
+# custom-shader = shaders/cursor_border_1.glsl
+custom-shader = shaders/cursor_frozen.glsl
+# custom-shader = shaders/cursor_smear.glsl
+# custom-shader = shaders/cursor_smear_fade.glsl
+# custom-shader = shaders/cursor_smear_gradient.glsl
+# custom-shader = shaders/cursor_smear_rainbow.glsl
+# custom-shader = shaders/blaze_sparks.glsl
+# custom-shader = shaders/debug_cursor_animated.glsl
+# custom-shader = shaders/debug_cursor_static.glsl
+# custom-shader = shaders/last_letter_zoom.glsl
+# custom-shader = shaders/manga_slash.glsl
+# custom-shader = shaders/party_sparks.glsl
+# custom-shader = shaders/shake.glsl
+custom-shader = shaders/sparks.glsl
+# custom-shader = shaders/test.glsl
+# custom-shader = shaders/WIP.glsl
+# custom-shader = shaders/zoom_and_aberration.glsl
+
 macos-titlebar-style = hidden
 mouse-hide-while-typing = true
 keybind	= global:cmd+opt+t=toggle_quick_terminal

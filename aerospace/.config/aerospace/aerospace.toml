@@ -14,7 +14,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 
 # Mouse follows focus
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
-on-focus-changed = ['move-mouse window-lazy-center', 'exec-and-forget sketchybar --trigger aerospace_focus_change']
+on-focus-changed = ['exec-and-forget sketchybar --trigger aerospace_focus_change']
 
 # Layout settings
 default-root-container-layout = 'tiles'
@@ -40,6 +40,39 @@ outer.right = 10
 7 = 'secondary'
 8 = 'secondary'
 9 = 'secondary'
+
+# Assign apps to workspaces when their windows open
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.mail'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 7'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'com.hnc.Discord'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = 'move-node-to-workspace 9'
 
 # Main keybindings (alt as modifier - similar to Hyprland's Super)
 [mode.main.binding]

@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+env_file="$HOME/.config/opencode/secrets/home-assistant.env"
+
+if [ -f "$env_file" ]; then
+  # shellcheck disable=SC1090
+  . "$env_file"
+fi
+
+export ENABLE_TOOL_SEARCH="${ENABLE_TOOL_SEARCH:-true}"
+
+exec uvx ha-mcp@latest "$@"

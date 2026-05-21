@@ -2,3 +2,4 @@ node_modules
 package.json
 bun.lock
 .gitignoreantigravity-accounts.json
+secrets/home-assistant.env

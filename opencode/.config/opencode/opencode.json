@@ -16,6 +16,12 @@
       "type": "remote",
       "url": "https://mcp.atlassian.com/v1/mcp",
       "enabled": true
+    },
+    "home-assistant": {
+      "type": "local",
+      "command": ["/Users/gzg/.config/opencode/bin/ha-mcp"],
+      "enabled": true,
+      "timeout": 30000
     }
   },
   "provider": {

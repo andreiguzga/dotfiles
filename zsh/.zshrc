@@ -195,6 +195,7 @@ function y() {
 	rm -f -- "$tmp"
 }
 alias lzd='lazydocker'
+alias tapify-db='ssh -N tapify-prod-db-tunnel'
 
 tmux() {
   command tmux -f "$HOME/.tmux.conf" "$@"

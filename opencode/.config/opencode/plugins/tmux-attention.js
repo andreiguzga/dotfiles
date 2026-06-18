@@ -1,10 +1,18 @@
-import { existsSync } from "node:fs"
+import { existsSync, readdirSync } from "node:fs"
 import { spawn, spawnSync } from "node:child_process"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
 export const TmuxAttentionPlugin = async ({ $ }) => {
   const inTmux = !!process.env.TMUX
   const targetPane = process.env.TMUX_PANE
   let lastSoundAt = 0
+  const pluginDirectory = dirname(fileURLToPath(import.meta.url))
+  const soundDirectories = [
+    process.env.OPENCODE_ATTENTION_SOUNDS,
+    resolve(pluginDirectory, "../sounds"),
+    resolve(pluginDirectory, "../../../../sounds"),
+  ].filter(Boolean)
 
   const commandExists = (command) => {
     return spawnSync("command", ["-v", command], { shell: true, stdio: "ignore" }).status === 0
@@ -19,7 +27,36 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
     return true
   }
 
-  const playPlatformSound = () => {
+  const getCustomSounds = () => {
+    for (const directory of soundDirectories) {
+      if (!existsSync(directory)) continue
+
+      const sounds = readdirSync(directory)
+        .filter((file) => file.toLowerCase().endsWith(".wav"))
+        .map((file) => resolve(directory, file))
+
+      if (sounds.length > 0) return sounds
+    }
+
+    return []
+  }
+
+  const playSoundFile = (sound) => {
+    if (process.platform === "darwin") {
+      return spawnSound("afplay", [sound])
+    }
+
+    if (process.platform === "linux") {
+      if (spawnSound("pw-play", [sound])) return true
+      if (spawnSound("paplay", [sound])) return true
+      if (spawnSound("aplay", [sound])) return true
+      return spawnSound("ffplay", ["-nodisp", "-autoexit", "-loglevel", "quiet", sound])
+    }
+
+    return false
+  }
+
+  const playDefaultSound = () => {
     if (process.platform === "darwin") {
       spawnSound("afplay", ["/System/Library/Sounds/Glass.aiff"])
       return
@@ -32,6 +69,14 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
     if (existsSync(sound) && spawnSound("paplay", [sound])) return
     if (spawnSound("canberra-gtk-play", ["-i", "complete"])) return
     if (existsSync(sound)) spawnSound("ffplay", ["-nodisp", "-autoexit", "-loglevel", "quiet", sound])
+  }
+
+  const playPlatformSound = () => {
+    const sounds = getCustomSounds()
+    const sound = sounds[Math.floor(Math.random() * sounds.length)]
+
+    if (sound && playSoundFile(sound)) return
+    playDefaultSound()
   }
 
   const playSound = async () => {

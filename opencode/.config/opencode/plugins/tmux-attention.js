@@ -13,6 +13,8 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
     resolve(pluginDirectory, "../sounds"),
     resolve(pluginDirectory, "../../../../sounds"),
   ].filter(Boolean)
+  const volume = Number.parseFloat(process.env.OPENCODE_ATTENTION_VOLUME ?? "1")
+  const safeVolume = Number.isFinite(volume) && volume > 0 ? volume : 1
 
   const commandExists = (command) => {
     return spawnSync("command", ["-v", command], { shell: true, stdio: "ignore" }).status === 0
@@ -43,12 +45,13 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
 
   const playSoundFile = (sound) => {
     if (process.platform === "darwin") {
-      return spawnSound("afplay", [sound])
+      return spawnSound("afplay", ["-v", String(safeVolume), sound])
     }
 
     if (process.platform === "linux") {
-      if (spawnSound("pw-play", [sound])) return true
-      if (spawnSound("paplay", [sound])) return true
+      if (safeVolume > 1 && spawnSound("ffplay", ["-nodisp", "-autoexit", "-loglevel", "quiet", "-af", `volume=${safeVolume}`, sound])) return true
+      if (spawnSound("pw-play", ["--volume", String(Math.min(safeVolume, 1)), sound])) return true
+      if (spawnSound("paplay", [`--volume=${Math.round(Math.min(safeVolume, 1) * 65536)}`, sound])) return true
       if (spawnSound("aplay", [sound])) return true
       return spawnSound("ffplay", ["-nodisp", "-autoexit", "-loglevel", "quiet", sound])
     }

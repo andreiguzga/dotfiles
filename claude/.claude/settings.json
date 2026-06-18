@@ -12,8 +12,6 @@
     ]
   },
   "model": "opus",
-  "theme": "dark",
-  "agentPushNotifEnabled": true,
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -98,5 +96,7 @@
         ]
       }
     ]
-  }
+  },
+  "theme": "dark",
+  "agentPushNotifEnabled": true
 }

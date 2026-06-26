@@ -17,6 +17,16 @@
       "url": "https://mcp.atlassian.com/v1/mcp",
       "enabled": true
     },
+    "asana": {
+      "type": "remote",
+      "url": "https://mcp.asana.com/v2/mcp",
+      "enabled": true,
+      "oauth": {
+        "clientId": "{env:ASANA_CLIENT_ID}",
+        "clientSecret": "{env:ASANA_CLIENT_SECRET}",
+        "redirectUri": "http://localhost:3334/oauth/callback"
+      }
+    },
     "home-assistant": {
       "type": "local",
       "command": ["/Users/gzg/.config/opencode/bin/ha-mcp"],

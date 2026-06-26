@@ -206,6 +206,10 @@ if [[ -f "$HOME/.local/bin/env" ]]; then
   . "$HOME/.local/bin/env"
 fi
 
+if [[ -f "$HOME/.config/opencode/secrets/asana.env" ]]; then
+  . "$HOME/.config/opencode/secrets/asana.env"
+fi
+
 # Added by Antigravity
 export PATH="/Users/gzg/.antigravity/antigravity/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"

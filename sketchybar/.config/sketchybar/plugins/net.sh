@@ -17,6 +17,9 @@ SSID_RAW="$(networksetup -getairportnetwork "$WIFI_IF" 2>/dev/null)"
 if [[ "$SSID_RAW" == "Current Wi-Fi Network: "* ]]; then
   SSID="${SSID_RAW#Current Wi-Fi Network: }"
   ONLINE=1
+elif IP_ADDR="$(ipconfig getifaddr "$WIFI_IF" 2>/dev/null)" && [ -n "$IP_ADDR" ] && ifconfig "$WIFI_IF" | grep -q "status: active"; then
+  SSID="$IP_ADDR"
+  ONLINE=1
 else
   SSID="Offline"
   ONLINE=0

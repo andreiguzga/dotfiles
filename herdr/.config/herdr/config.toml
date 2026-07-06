@@ -1,0 +1,86 @@
+# Herdr configuration tuned to match the tmux setup in this repo.
+# Install with: stow -t ~ herdr
+
+onboarding = false
+
+[theme]
+name = "tokyo-night"
+
+auto_switch = false
+[terminal]
+shell_mode = "auto"
+new_cwd = "follow"
+
+[keys]
+# tmux/.tmux.conf uses C-s instead of the default C-b prefix.
+prefix = "ctrl+s"
+
+# Session/config actions.
+detach = "prefix+q"
+reload_config = "prefix+r"
+resize_mode = "prefix+shift+r"
+
+# Vim-style pane navigation, matching tmux prefix+h/j/k/l.
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+navigate_pane_left = "h"
+navigate_pane_down = "j"
+navigate_pane_up = "k"
+navigate_pane_right = "l"
+
+# tmux-style splits:
+# - prefix+% splits to the right, like tmux split-window -h.
+# - prefix+\" splits down, like tmux split-window -v.
+split_vertical = "prefix+%"
+split_horizontal = "prefix+\""
+
+# Keep Herdr defaults for the tmux-adjacent actions that already feel familiar.
+copy_mode = "prefix+["
+new_tab = "prefix+c"
+previous_tab = "prefix+p"
+next_tab = "prefix+n"
+switch_tab = "prefix+1..9"
+close_pane = "prefix+x"
+zoom = "prefix+z"
+workspace_picker = "prefix+w"
+toggle_sidebar = "prefix+b"
+
+[[keys.command]]
+key = "prefix+alt+g"
+type = "pane"
+command = "lazygit"
+description = "open lazygit"
+
+[ui]
+mouse_capture = true
+mouse_scroll_lines = 3
+confirm_close = true
+prompt_new_tab_name = false
+pane_borders = true
+pane_gaps = true
+show_agent_labels_on_pane_borders = true
+agent_panel_sort = "priority"
+accent = "blue"
+
+[ui.toast]
+delivery = "herdr"
+
+[ui.toast.clipboard]
+enabled = true
+position = "bottom-center"
+
+[ui.sound]
+enabled = false
+
+[session]
+resume_agents_on_restore = true
+
+[experimental]
+pane_history = true
+
+[advanced]
+# tmux history-limit is line-based; Herdr scrollback is byte-based.
+# 50 MiB is the nearest practical analogue to this repo's 50k-line tmux history.
+scrollback_limit_bytes = 52428800

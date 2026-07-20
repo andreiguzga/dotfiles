@@ -32,6 +32,21 @@
       "command": ["/Users/gzg/.config/opencode/bin/ha-mcp"],
       "enabled": true,
       "timeout": 30000
+    },
+    "fusion360": {
+      "type": "local",
+      "command": [
+        "/opt/homebrew/bin/uvx",
+        "fusion360-mcp-server",
+        "--mode",
+        "socket"
+      ],
+      "enabled": true
+    },
+    "netbird": {
+      "type": "local",
+      "command": ["/Users/gzg/.config/opencode/bin/mcp-netbird"],
+      "enabled": true
     }
   },
   "provider": {

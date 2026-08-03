@@ -21,10 +21,27 @@ if raw:
 else:
     data = {}
 
-state = str(data.get("state", "")).lower()
-title = (data.get("title") or "").strip()
-artist = (data.get("artist") or "").strip()
-app = (data.get("app") or "").strip()
+state = str(data.get("state") or data.get("Player State") or "").lower()
+title = (data.get("title") or data.get("Name") or "").strip()
+artist = (data.get("artist") or data.get("Artist") or "").strip()
+app = (data.get("app") or ("Spotify" if "Player State" in data else "")).strip()
+
+# Startup and wake events have no payload. Query once so an already-playing
+# Spotify track appears without waiting for the next playback notification.
+if not raw and subprocess.run(
+    ["pgrep", "-x", "Spotify"], stdout=subprocess.DEVNULL
+).returncode == 0:
+    result = subprocess.run([
+        "osascript", "-e",
+        'tell application "Spotify" to return (player state as text) & linefeed & '
+        '(artist of current track) & linefeed & (name of current track)',
+    ], capture_output=True, text=True, check=False)
+    values = result.stdout.rstrip("\n").split("\n", 2)
+    if len(values) == 3:
+        state, artist, title = values
+        state = state.lower()
+        app = "Spotify"
+
 lower_app = app.lower()
 lower_title = title.lower()
 browser_apps = {"safari", "google chrome", "chrome", "brave browser", "brave", "arc", "firefox", "microsoft edge"}

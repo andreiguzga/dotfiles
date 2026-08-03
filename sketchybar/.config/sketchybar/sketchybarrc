@@ -31,6 +31,7 @@ sketchybar --default "${default[@]}"
 
 sketchybar --add event aerospace_workspace_change
 sketchybar --add event aerospace_focus_change
+sketchybar --add event spotify_change com.spotify.client.PlaybackStateChanged
 
 DISPLAY_COUNT="$(aerospace list-monitors --count 2>/dev/null || printf '1')"
 WORKSPACES=(1 2 3 4 5 6 7 8 9)
@@ -97,7 +98,7 @@ do
 
   sketchybar --add item "$media" "$media_position" \
              --set "$media" display="$did" width="$media_width" icon= icon.padding_left=8 icon.padding_right=6 label.max_chars=34 label.align=left scroll_texts=on script="$PLUGIN_DIR/media.sh" updates=on background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 drawing=off \
-             --subscribe "$media" media_change system_woke
+             --subscribe "$media" media_change spotify_change system_woke
 
    sketchybar --add item "$clock" right \
               --set "$clock" display="$did" update_freq=10 icon=󰃭 script="$PLUGIN_DIR/clock.sh" click_script="open -a Calendar" background.drawing=off \

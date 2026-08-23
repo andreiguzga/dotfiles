@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+env_file="$HOME/.config/opencode/secrets/netbird.env"
+
+if [ -f "$env_file" ]; then
+  # shellcheck disable=SC1090
+  . "$env_file"
+fi
+
+if [ -z "${NETBIRD_API_TOKEN:-}" ]; then
+  NETBIRD_API_TOKEN="$(op read \
+    "${NETBIRD_API_TOKEN_REF:-op://Private/NetBird MCP/credential}" \
+    --account "${OP_ACCOUNT:-my.1password.com}")"
+fi
+export NETBIRD_API_TOKEN
+
+if command -v mcp-netbird >/dev/null 2>&1; then
+  exec mcp-netbird "$@"
+fi
+
+exec "$HOME/go/bin/mcp-netbird" "$@"

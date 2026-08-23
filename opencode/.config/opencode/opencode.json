@@ -29,7 +29,11 @@
     },
     "home-assistant": {
       "type": "local",
-      "command": ["/Users/gzg/.config/opencode/bin/ha-mcp"],
+      "command": [
+        "sh",
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/ha-mcp\""
+      ],
       "enabled": true,
       "timeout": 30000
     },
@@ -45,7 +49,11 @@
     },
     "netbird": {
       "type": "local",
-      "command": ["/Users/gzg/.config/opencode/bin/mcp-netbird"],
+      "command": [
+        "sh",
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/mcp-netbird\""
+      ],
       "enabled": true
     }
   },

@@ -1,10 +1,19 @@
 #!/bin/sh
 set -eu
 
-HOMEASSISTANT_URL="https://ha.andrei-guzga.ro"
-HOMEASSISTANT_TOKEN="$(op read \
-  "op://Private/Home assistant/mcp-credential" \
-  --account my.1password.com)"
+env_file="$HOME/.config/opencode/secrets/home-assistant.env"
+
+if [ -f "$env_file" ]; then
+  # shellcheck disable=SC1090
+  . "$env_file"
+fi
+
+HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-https://ha.andrei-guzga.ro}"
+if [ -z "${HOMEASSISTANT_TOKEN:-}" ]; then
+  HOMEASSISTANT_TOKEN="$(op read \
+    "${HOMEASSISTANT_TOKEN_REF:-op://Private/Home assistant/mcp-credential}" \
+    --account "${OP_ACCOUNT:-my.1password.com}")"
+fi
 export HOMEASSISTANT_URL HOMEASSISTANT_TOKEN
 
 export ENABLE_TOOL_SEARCH="${ENABLE_TOOL_SEARCH:-true}"

@@ -42,6 +42,8 @@ new_tab = "prefix+c"
 previous_tab = "prefix+p"
 next_tab = "prefix+n"
 switch_tab = "prefix+1..9"
+previous_agent = "prefix+shift+a"
+next_agent = "prefix+a"
 close_pane = "prefix+x"
 zoom = "prefix+z"
 workspace_picker = "prefix+w"
@@ -72,7 +74,7 @@ enabled = true
 position = "bottom-center"
 
 [ui.sound]
-enabled = false
+enabled = true
 
 [session]
 resume_agents_on_restore = true

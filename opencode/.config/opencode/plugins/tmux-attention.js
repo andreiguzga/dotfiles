@@ -13,8 +13,8 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
     resolve(pluginDirectory, "../sounds"),
     resolve(pluginDirectory, "../../../../sounds"),
   ].filter(Boolean)
-  const volume = Number.parseFloat(process.env.OPENCODE_ATTENTION_VOLUME ?? "1")
-  const safeVolume = Number.isFinite(volume) && volume > 0 ? volume : 1
+  const volume = Number.parseFloat(process.env.OPENCODE_ATTENTION_VOLUME ?? "0.25")
+  const safeVolume = Number.isFinite(volume) && volume > 0 ? volume : 0.25
 
   const commandExists = (command) => {
     return spawnSync("command", ["-v", command], { shell: true, stdio: "ignore" }).status === 0
@@ -61,7 +61,7 @@ export const TmuxAttentionPlugin = async ({ $ }) => {
 
   const playDefaultSound = () => {
     if (process.platform === "darwin") {
-      spawnSound("afplay", ["/System/Library/Sounds/Glass.aiff"])
+      spawnSound("afplay", ["-v", String(safeVolume), "/System/Library/Sounds/Glass.aiff"])
       return
     }
 

@@ -4,6 +4,7 @@ set -euo pipefail
 action="${1:-}"
 target_pane="${TMUX_PANE:-}"
 stamp_file="${TMPDIR:-/tmp}/claude-code-tmux-attention-sound-${UID:-user}"
+volume="${CLAUDE_ATTENTION_VOLUME:-0.25}"
 
 play_sound() {
   local now last
@@ -19,7 +20,7 @@ play_sound() {
   fi
 
   printf '%s' "$now" >"$stamp_file"
-  afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &
+  afplay -v "$volume" /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &
 }
 
 set_attention() {

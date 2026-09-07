@@ -1,0 +1,204 @@
+notify = ["/Users/gzg/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
+model = "gpt-6-astra"
+model_reasoning_effort = "high"
+service_tier = "default"
+
+[marketplaces.openai-bundled]
+source_type = "local"
+source = "/Users/gzg/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+source_type = "local"
+source = "/Users/gzg/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[plugins."codex-app-tools@openai-bundled"]
+enabled = true
+
+[plugins."unified-computer-use@openai-bundled"]
+enabled = true
+
+[features]
+js_repl = false
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/gzg/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+CODEX_HOME = "/Users/gzg/.codex"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+BROWSER_USE_TINYSKY_ENABLED = "1"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.901.41600"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.901.41600/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
+CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
+
+[mcp_servers.computer-use]
+command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
+args = ["mcp"]
+cwd = "."
+enabled = false
+
+[desktop]
+conversationDetailMode = "STEPS_PROSE"
+ambient-suggestions-enabled = true
+followUpQueueMode = "queue"
+realtimeVoiceScreenContextEnabled = true
+keepRemoteControlAwakeWhilePluggedIn = true
+
+[desktop.open-in-target-preferences]
+global = "ghostty"
+
+[shell_environment_policy.set]
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "8e86beb821b9afc846211798e0113bd4b9e79312dfcd135eb447bdb154f64071"
+
+[projects."/Users/gzg/Documents/Codex/2026-07-27/realtime-voice-chat"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-07-28/i"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-07-28/cut-list-id-part-quantity-finished"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-07-29/i"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Projects/Websites/tapify"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-07-29/i-need"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-02/tr"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-04/i"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-04/how"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-13/i"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-14/can"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-23/wha"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-25/if"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-25/pen"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-08-27/w"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Projects/Websites/setster-docker"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/.codex/.chatgpt-projects/g-p-67f3c99fee94819187ef0a4ca9d57650"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-02/i-x20"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-03/i"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-03/i-x20"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Projects/Websites/BrandManager"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Projects/Websites/dotfiles"]
+trust_level = "trusted"
+
+[hooks.state]
+
+[hooks.state."browser@openai-bundled:plugin.json#hooks[0]:stop:0:0"]
+trusted_hash = "sha256:317a07045dfc95aef2e80c55428a2f817e2768be867e3b1ef29a73da8636ae7f"
+
+[hooks.state."chrome@openai-bundled:plugin.json#hooks[0]:stop:0:0"]
+trusted_hash = "sha256:317a07045dfc95aef2e80c55428a2f817e2768be867e3b1ef29a73da8636ae7f"
+
+[tui]
+theme = "dracula"
+session_picker_view = "dense"
+
+[tui.model_availability_nux]
+gpt-6-astra = 4
+
+# Matches opencode/.config/opencode/opencode.json.
+[mcp_servers.atlassian]
+url = "https://mcp.atlassian.com/v1/mcp"
+enabled = true
+
+# Asana V2 requires a client secret, handled by mcp-remote.
+[mcp_servers.asana]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
+enabled = true
+startup_timeout_sec = 120
+
+[mcp_servers.home-assistant]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
+enabled = true
+startup_timeout_sec = 30
+tool_timeout_sec = 30
+
+[mcp_servers.fusion360]
+command = "/opt/homebrew/bin/uvx"
+args = ["fusion360-mcp-server", "--mode", "socket"]
+enabled = true
+startup_timeout_sec = 30
+
+[mcp_servers.netbird]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
+enabled = true
+startup_timeout_sec = 30

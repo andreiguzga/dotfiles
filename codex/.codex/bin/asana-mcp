@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+env_file="$HOME/.config/opencode/secrets/asana.env"
+if [ -f "$env_file" ]; then
+  . "$env_file"
+fi
+
+: "${ASANA_CLIENT_ID:?Set ASANA_CLIENT_ID in ~/.config/opencode/secrets/asana.env}"
+: "${ASANA_CLIENT_SECRET:?Set ASANA_CLIENT_SECRET in ~/.config/opencode/secrets/asana.env}"
+export ASANA_CLIENT_ID ASANA_CLIENT_SECRET
+
+# Pass credentials by file, keeping the secret out of process arguments.
+umask 077
+credentials_file="$(mktemp "${TMPDIR:-/tmp}/codex-asana.XXXXXX")"
+trap 'rm -f "$credentials_file"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+python3 - "$credentials_file" <<'PY'
+import json
+import os
+import sys
+
+with open(sys.argv[1], "w") as credentials:
+    json.dump({"client_id": os.environ["ASANA_CLIENT_ID"],
+               "client_secret": os.environ["ASANA_CLIENT_SECRET"]}, credentials)
+PY
+
+npx -y mcp-remote@latest https://mcp.asana.com/v2/mcp 3334 \
+  --static-oauth-client-info "@$credentials_file" \
+  --resource https://mcp.asana.com/v2 "$@"

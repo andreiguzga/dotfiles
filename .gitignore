@@ -3,4 +3,10 @@
 # Track only Codex settings and launchers, not credentials or runtime state.
 codex/.codex/*
 !codex/.codex/config.toml
+!codex/.codex/AGENTS.md
+!codex/.codex/agents/
+codex/.codex/agents/*
+!codex/.codex/agents/scout.toml
+!codex/.codex/agents/developer.toml
+!codex/.codex/agents/verifier.toml
 !codex/.codex/bin/

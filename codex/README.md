@@ -1,10 +1,11 @@
 # Codex
 
-The full Codex configuration lives in `.codex/config.toml`. GNU Stow links
-`~/.codex/config.toml` to this file, so config edits appear in this repository.
-It includes model preferences, plugins, desktop/TUI settings, project trust,
-and MCP servers. The absolute paths currently describe the macOS `gzg` account;
-review those paths and project trust entries before installing on another system.
+The Codex configuration lives under `.codex/`. GNU Stow links its files into
+`~/.codex`, so config edits appear in this repository. It includes model and
+agent preferences, global agent instructions, plugins, desktop/TUI settings,
+project trust, and MCP servers. The absolute paths currently describe the macOS
+`gzg` account; review those paths and project trust entries before installing on
+another system.
 
 From the repository root:
 
@@ -20,12 +21,50 @@ the installer refuses to discard them. Rerunning is safe. For a fresh home,
 `stow --no-folding -t ~ codex` also works. `--target-home /path/to/home` on the
 installer supports checking installation in a separate directory.
 
-Only `config.toml` and `bin/` under `.codex` belong in Git. Authentication,
-OAuth tokens, sessions, caches, and backups remain local and are ignored by
-the repository. Credentials stay in the existing OpenCode secret files or
+Only `config.toml`, `AGENTS.md`, the three named role files in `agents/`, and
+`bin/` under `.codex` belong in Git. Authentication, OAuth tokens, sessions,
+caches, generated agent state, and backups remain local and are ignored by the
+repository. Credentials stay in the existing OpenCode secret files or
 1Password. Review config changes before committing: Codex can update this file
 as preferences, plugins, and trusted projects change. If an application update
-replaces the symlink with a regular file, merge it back and rerun the installer.
+replaces a symlink with a regular file, merge it back and rerun the installer.
+
+## Multi-agent workflow
+
+This setup was validated with Codex CLI 0.154.0. The primary agent remains on
+`gpt-6-astra` with high reasoning and owns planning, decisions, integration, and
+final review. Multi-agent support allows up to three concurrent subagent threads
+per session and defaults unspecified subagents to `gpt-5.6-luna` with low
+reasoning.
+
+The standalone roles in `.codex/agents/` are:
+
+- `scout`: read-only, coherent multi-file exploration on `gpt-5.6-luna`/low.
+- `developer`: focused substantial implementation on `gpt-5.6-sol`/high.
+- `verifier`: independent diff review and focused checks on
+  `gpt-5.6-luna`/low.
+
+`.codex/AGENTS.md` tells the primary agent when to use each role, what a useful
+brief and report contain, and when parallel work is appropriate. Role files set
+the role identity, model, reasoning effort, and instructions. Conversation
+inheritance is selected when a subagent is spawned; it is not a role-file
+setting. The primary agent should send a self-contained task without inherited
+turns when possible, or use the smallest supported recent-turn subset.
+
+Parse every tracked TOML file after editing it:
+
+```sh
+python3 -c 'import pathlib, tomllib; [tomllib.loads(p.read_text()) for p in pathlib.Path("codex/.codex").glob("**/*.toml")]'
+```
+
+For an installation check that does not touch the live home directory, create a
+temporary directory and pass it to `--target-home`. Strict app-server startup
+and a `config/read` request verify the global agent settings. A `thread/start`
+request loads standalone role definitions; this was confirmed without starting
+a turn, including a malformed-file negative control that reached the agent-role
+loader. Runtime role dispatch and spawn-time history selection should be checked
+separately when changing them because these configuration checks do not exercise
+a paid worker spawn.
 
 ## MCP servers
 

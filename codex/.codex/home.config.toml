@@ -1,2 +1,1 @@
-[mcp_servers.home-assistant]
-enabled = true
+# Compatibility profile: all MCP servers are enabled in config.toml.

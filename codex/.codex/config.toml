@@ -1,5 +1,5 @@
 notify = ["/Users/gzg/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
-model = "gpt-6-astra"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 service_tier = "default"
 approvals_reviewer = "auto_review"
@@ -74,8 +74,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.903.61454"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.903.61454/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.908.40834"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.908.40834/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -190,6 +190,8 @@ trusted_hash = "sha256:317a07045dfc95aef2e80c55428a2f817e2768be867e3b1ef29a73da8
 [tui]
 theme = "dracula"
 session_picker_view = "dense"
+status_line = ["model-with-reasoning", "current-dir", "thread-name", "five-hour-limit", "weekly-limit"]
+status_line_use_colors = true
 
 [tui.model_availability_nux]
 gpt-6-astra = 4

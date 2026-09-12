@@ -1,3 +1,6 @@
 ^/README\.md$
 ^/install\.py$
+^/test_install\.py$
+# install.py manages one directory symlink; Codex rejects per-file role symlinks.
+^/\.codex/agents(/|$)
 __pycache__

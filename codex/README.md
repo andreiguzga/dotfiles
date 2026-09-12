@@ -15,11 +15,22 @@ codex mcp list
 ```
 
 Requires Python 3.11+ and GNU Stow. The installer backs up an existing local
-config when its settings match the repository, then stows the config and
-launcher. If the settings differ, merge them into the repository file first;
-the installer refuses to discard them. Rerunning is safe. For a fresh home,
-`stow --no-folding -t ~ codex` also works. `--target-home /path/to/home` on the
-installer supports checking installation in a separate directory.
+config when its settings match the repository, then stows the config,
+instructions, and launcher. It links `~/.codex/agents` to the repository's
+agent directory separately. If the config settings differ, merge them into the
+repository file first; the installer refuses to discard them. Rerunning is
+safe. Use the installer for the complete setup: plain Stow excludes the agents
+directory. `--target-home /path/to/home` supports checking installation in a
+separate directory.
+
+Codex CLI 0.154.0 discovers individually symlinked role files but fails to spawn
+them with "agent type is currently not available" (the underlying error is
+"Too many levels of symbolic links"). A directory symlink works because each
+role file itself is regular. The installer migrates an empty directory or
+existing links pointing to the corresponding repository role files. It refuses
+other files or links before modifying the installation, so local custom agents
+must be reconciled first. The rest of the package retains Stow's `--no-folding`
+layout.
 
 Only `config.toml`, named `*.config.toml` profiles, `AGENTS.md`, the three named
 role files in `agents/`, and `bin/` under `.codex` belong in Git. Authentication,
@@ -61,11 +72,25 @@ python3 -c 'import pathlib, tomllib; [tomllib.loads(p.read_text()) for p in path
 For an installation check that does not touch the live home directory, create a
 temporary directory and pass it to `--target-home`. Strict app-server startup
 and a `config/read` request verify the global agent settings. A `thread/start`
-request loads standalone role definitions; this was confirmed without starting
-a turn, including a malformed-file negative control that reached the agent-role
-loader. Runtime role dispatch and spawn-time history selection should be checked
-separately when changing them because these configuration checks do not exercise
-a paid worker spawn.
+request loads standalone role definitions, but discovery alone does not prove
+spawning works. Actual spawn-handler tests using a loopback mock Responses API
+reproduced the per-file symlink failure and verified directory links for all
+three roles plus the Luna/low fallback. Captured child requests confirmed the
+configured model, reasoning, and role instructions; `fork_turns="none"` excluded
+a parent-only test marker. This tests routing without paid model inference.
+The three named roles also passed a live `READY` smoke test without model or
+reasoning overrides.
+
+Run the installer regression checks with:
+
+```sh
+python3 -B -m unittest discover -s codex -p test_install.py
+```
+
+After changing the setup, start a fresh Codex session and ask it to spawn each
+named role with no model/reasoning overrides and `fork_turns="none"`, giving each
+only the task "Reply READY; do not use tools." Keep the threads available for
+inspection. This makes real model calls; use it to verify the installed layout.
 
 ## MCP servers
 

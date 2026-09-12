@@ -8,11 +8,43 @@ if [ -f "$env_file" ]; then
   . "$env_file"
 fi
 
-HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-https://ha.andrei-guzga.ro}"
-if [ -z "${HOMEASSISTANT_TOKEN:-}" ]; then
-  HOMEASSISTANT_TOKEN="$(op read \
-    "${HOMEASSISTANT_TOKEN_REF:-op://Private/Home assistant/mcp-credential}" \
-    --account "${OP_ACCOUNT:-my.1password.com}")"
+HOMEASSISTANT_URL="${HOMEASSISTANT_URL-https://ha.andrei-guzga.ro}"
+HOMEASSISTANT_TOKEN_SOURCE="${HOMEASSISTANT_TOKEN_SOURCE-1password}"
+
+if [ -z "$HOMEASSISTANT_URL" ]; then
+  echo "HOMEASSISTANT_URL must not be empty" >&2
+  exit 1
+fi
+
+case "$HOMEASSISTANT_TOKEN_SOURCE" in
+  1password)
+    HOMEASSISTANT_TOKEN_REF="${HOMEASSISTANT_TOKEN_REF-op://Private/Home assistant/mcp-credential}"
+    OP_ACCOUNT="${OP_ACCOUNT-my.1password.com}"
+    if [ -z "$HOMEASSISTANT_TOKEN_REF" ] || [ -z "$OP_ACCOUNT" ]; then
+      echo "HOMEASSISTANT_TOKEN_REF and OP_ACCOUNT must not be empty" >&2
+      exit 1
+    fi
+
+    # Never reuse a token sourced from the optional env file in the default mode.
+    unset HOMEASSISTANT_TOKEN
+    if ! HOMEASSISTANT_TOKEN="$(op read "$HOMEASSISTANT_TOKEN_REF" \
+      --account "$OP_ACCOUNT")"; then
+      echo "Failed to read the Home Assistant token from 1Password" >&2
+      exit 1
+    fi
+    ;;
+  environment)
+    HOMEASSISTANT_TOKEN="${HOMEASSISTANT_TOKEN:-}"
+    ;;
+  *)
+    echo "HOMEASSISTANT_TOKEN_SOURCE must be '1password' or 'environment'" >&2
+    exit 1
+    ;;
+esac
+
+if [ -z "$HOMEASSISTANT_TOKEN" ]; then
+  echo "Home Assistant token must not be empty" >&2
+  exit 1
 fi
 export HOMEASSISTANT_URL HOMEASSISTANT_TOKEN
 

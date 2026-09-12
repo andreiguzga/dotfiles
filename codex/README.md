@@ -21,8 +21,9 @@ the installer refuses to discard them. Rerunning is safe. For a fresh home,
 `stow --no-folding -t ~ codex` also works. `--target-home /path/to/home` on the
 installer supports checking installation in a separate directory.
 
-Only `config.toml`, `AGENTS.md`, the three named role files in `agents/`, and
-`bin/` under `.codex` belong in Git. Authentication, OAuth tokens, sessions,
+Only `config.toml`, named `*.config.toml` profiles, `AGENTS.md`, the three named
+role files in `agents/`, and `bin/` under `.codex` belong in Git. Authentication,
+OAuth tokens, sessions,
 caches, generated agent state, and backups remain local and are ignored by the
 repository. Credentials stay in the existing OpenCode secret files or
 1Password. Review config changes before committing: Codex can update this file
@@ -68,13 +69,67 @@ a paid worker spawn.
 
 ## MCP servers
 
-The config includes the same five servers as
-`opencode/.config/opencode/opencode.json`: Atlassian, Asana, Home Assistant,
-Fusion 360, and NetBird.
+The Codex and OpenCode base configs define the same five user-configured
+servers: Atlassian, Asana, Home Assistant, Fusion 360, and NetBird. All five are
+disabled by default. Codex's built-in `node_repl` and computer-use settings are
+unchanged.
 
-Home Assistant and NetBird reuse `~/.config/opencode/bin` launchers and their
-secret-file/1Password handling. Fusion 360 uses Homebrew `uvx` in socket mode;
-its Fusion add-in must be running for CAD operations.
+MCP clients start every enabled server when their process starts; these configs
+do not provide true tool-demand loading. Consequently, a broken credential can
+produce one failed startup authentication per enabled client process. Enabling
+or disabling a server in a config does not change an already running process:
+restart Codex or OpenCode to apply it.
+
+### Codex profiles
+
+Start a session with one logical subset enabled:
+
+```sh
+codex --profile home     # Home Assistant only
+codex --profile work     # Atlassian and Asana
+codex --profile cad      # Fusion 360 only
+codex --profile network  # NetBird only
+```
+
+Plain `codex` leaves all five disabled. Each `<name>.config.toml` profile only
+overrides the relevant `enabled` field and is layered on the base
+`~/.codex/config.toml`; server definitions and credentials remain in their
+existing single locations.
+
+### OpenCode profiles
+
+OpenCode merges the file selected by `OPENCODE_CONFIG` on top of its global
+config. The checked-in overrides are inert unless selected for that process:
+
+```sh
+OPENCODE_CONFIG="$HOME/.config/opencode/profiles/home.json" opencode
+OPENCODE_CONFIG="$HOME/.config/opencode/profiles/work.json" opencode
+OPENCODE_CONFIG="$HOME/.config/opencode/profiles/cad.json" opencode
+OPENCODE_CONFIG="$HOME/.config/opencode/profiles/network.json" opencode
+```
+
+The same commands can be run from a project directory for a project-scoped
+session. Plain `opencode` leaves all five disabled. There is intentionally no
+wrapper executable: invoking `opencode` from an `opencode` launcher can recurse.
+
+### Credentials and server prerequisites
+
+Home Assistant and NetBird reuse `~/.config/opencode/bin` launchers. The Home
+Assistant launcher reads `~/.config/opencode/secrets/home-assistant.env` when it
+exists, but obtains its token from 1Password by default even if that file
+contains an old `HOMEASSISTANT_TOKEN`. Configure the URL, item reference, and
+account with `HOMEASSISTANT_URL`, `HOMEASSISTANT_TOKEN_REF`, and `OP_ACCOUNT`.
+An `op read` error or empty result stops the launcher before `uvx` can contact
+Home Assistant, and the token is never printed.
+
+Direct token use is an explicit fallback only. Set
+`HOMEASSISTANT_TOKEN_SOURCE=environment` and provide a non-empty
+`HOMEASSISTANT_TOKEN` in the process environment or secret file. Any other
+source value is rejected. See
+`opencode/.config/opencode/secrets/home-assistant.env.example` for both modes.
+
+Fusion 360 uses Homebrew `uvx` in socket mode; its Fusion add-in must be running
+for CAD operations.
 
 Asana uses Node.js/npm and `mcp-remote`, following the
 [Asana Codex guide](https://developers.asana.com/docs/connecting-mcp-clients-to-asanas-v2-server).
@@ -91,5 +146,6 @@ Authenticate Atlassian on each machine:
 codex mcp login atlassian
 ```
 
-Restart Codex after installation, then use `/mcp` to inspect connections. See
-the [official MCP documentation](https://developers.openai.com/codex/mcp).
+After authentication or config changes, restart the selected client. In Codex,
+use `/mcp` to inspect connections. See the
+[official MCP documentation](https://developers.openai.com/codex/mcp).

@@ -197,30 +197,30 @@ gpt-6-astra = 4
 # Matches opencode/.config/opencode/opencode.json.
 [mcp_servers.atlassian]
 url = "https://mcp.atlassian.com/v1/mcp"
-enabled = true
+enabled = false
 
 # Asana V2 requires a client secret, handled by mcp-remote.
 [mcp_servers.asana]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
-enabled = true
+enabled = false
 startup_timeout_sec = 120
 
 [mcp_servers.home-assistant]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
-enabled = true
+enabled = false
 startup_timeout_sec = 30
 tool_timeout_sec = 30
 
 [mcp_servers.fusion360]
 command = "/opt/homebrew/bin/uvx"
 args = ["fusion360-mcp-server", "--mode", "socket"]
-enabled = true
+enabled = false
 startup_timeout_sec = 30
 
 [mcp_servers.netbird]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
-enabled = true
+enabled = false
 startup_timeout_sec = 30

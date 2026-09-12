@@ -28,7 +28,23 @@ herdr server reload-config
 - New tab: `prefix + c`
 - Previous/next tab: `prefix + p/n`
 - Jump to tabs: `prefix + 1..9`
+- Next/previous agent needing attention: `prefix + a` / `prefix + Shift-a`
 - Detach: `prefix + q`
+
+## Agent Navigation
+
+`Ctrl-s`, then `a` cycles through blocked agents (waiting for input or approval)
+and done agents (finished work needing review), across all workspaces. When none
+need attention, it cycles through all agents. `Ctrl-s`, then `Shift-a` reverses
+the direction. Ordering follows the configured priority sidebar: blocked, done,
+working, idle, unknown, with workspace/tab/pane order within each state.
+
+The shortcut uses `focus-agent.py` and Python 3, with no extra dependencies.
+An idle agent does not count as needing attention. If the focused agent is the
+only one needing attention, the shortcut stays there until its state changes.
+Run `python3 ~/.config/herdr/focus-agent.py next --dry-run` to inspect the next
+target without changing focus. After adding this script to an existing install,
+run the Stow command above again and reload the server config.
 
 ## Notes
 

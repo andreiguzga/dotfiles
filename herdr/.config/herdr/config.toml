@@ -42,12 +42,25 @@ new_tab = "prefix+c"
 previous_tab = "prefix+p"
 next_tab = "prefix+n"
 switch_tab = "prefix+1..9"
-previous_agent = "prefix+shift+a"
-next_agent = "prefix+a"
+# Agent navigation is handled by the attention-aware commands below.
+previous_agent = ""
+next_agent = ""
 close_pane = "prefix+x"
 zoom = "prefix+z"
 workspace_picker = "prefix+w"
 toggle_sidebar = "prefix+b"
+
+[[keys.command]]
+key = "prefix+a"
+type = "shell"
+command = "python3 ~/.config/herdr/focus-agent.py next"
+description = "next agent needing attention (otherwise next agent)"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "shell"
+command = "python3 ~/.config/herdr/focus-agent.py previous"
+description = "previous agent needing attention (otherwise previous agent)"
 
 [[keys.command]]
 key = "prefix+alt+g"

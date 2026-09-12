@@ -2,6 +2,7 @@ notify = ["/Users/gzg/.codex/computer-use/Codex Computer Use.app/Contents/Shared
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 service_tier = "default"
+approvals_reviewer = "auto_review"
 
 [agents]
 enabled = true
@@ -73,8 +74,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.901.41600"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.901.41600/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.903.61454"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.903.61454/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -90,6 +91,9 @@ ambient-suggestions-enabled = true
 followUpQueueMode = "queue"
 realtimeVoiceScreenContextEnabled = true
 keepRemoteControlAwakeWhilePluggedIn = true
+preventSleepWhileRunning = false
+show-context-window-usage = true
+microphoneInputDeviceId = "e929bdb29e50c6bffac0528e7280129b1a65391890635fe2309f127b8e03d175"
 
 [desktop.open-in-target-preferences]
 global = "ghostty"
@@ -157,10 +161,22 @@ trust_level = "trusted"
 [projects."/Users/gzg/Documents/Codex/2026-09-03/i-x20"]
 trust_level = "trusted"
 
-[projects."/Users/gzg/Projects/Websites/BrandManager"]
+[projects."/Users/gzg/Projects/Websites/tapify/BrandManager"]
 trust_level = "trusted"
 
 [projects."/Users/gzg/Projects/Websites/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Projects/Websites/coco-portfolio"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-09/realtime-voice-chat"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-10/i-x20"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-12/i-x20"]
 trust_level = "trusted"
 
 [hooks.state]

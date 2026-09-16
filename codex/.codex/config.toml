@@ -39,9 +39,6 @@ enabled = true
 [plugins."browser@openai-bundled"]
 enabled = true
 
-[plugins."sites@openai-bundled"]
-enabled = true
-
 [plugins."computer-use@openai-bundled"]
 enabled = true
 
@@ -63,7 +60,6 @@ js_repl = false
 [mcp_servers.node_repl]
 args = []
 command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
-enabled = true
 startup_timeout_sec = 120
 
 [mcp_servers.node_repl.env]
@@ -78,8 +74,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.908.40834"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.908.40834/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.908.70816"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.908.70816/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -87,7 +83,34 @@ CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
 args = ["mcp"]
 cwd = "."
-enabled = true
+enabled = false
+
+[mcp_servers.atlassian]
+url = "https://mcp.atlassian.com/v1/mcp"
+
+[mcp_servers.asana]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
+startup_timeout_sec = 120.0
+
+[mcp_servers.home-assistant]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
+startup_timeout_sec = 30.0
+tool_timeout_sec = 30.0
+
+[mcp_servers.fusion360]
+command = "/opt/homebrew/bin/uvx"
+args = ["fusion360-mcp-server", "--mode", "socket"]
+startup_timeout_sec = 30.0
+
+[mcp_servers.netbird]
+command = "sh"
+args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
+startup_timeout_sec = 30.0
+
+[mcp_servers.upwork]
+url = "https://mcp.upwork.com/mcp"
 
 [desktop]
 conversationDetailMode = "STEPS_PROSE"
@@ -183,6 +206,15 @@ trust_level = "trusted"
 [projects."/Users/gzg/Documents/Codex/2026-09-12/i-x20"]
 trust_level = "trusted"
 
+[projects."/Users/gzg/Documents/Codex/2026-09-12/is-x20"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-14/i-x20"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-16/why"]
+trust_level = "trusted"
+
 [hooks.state]
 
 [hooks.state."browser@openai-bundled:plugin.json#hooks[0]:stop:0:0"]
@@ -199,34 +231,3 @@ status_line_use_colors = true
 
 [tui.model_availability_nux]
 gpt-6-astra = 4
-
-# Matches opencode/.config/opencode/opencode.json.
-[mcp_servers.atlassian]
-url = "https://mcp.atlassian.com/v1/mcp"
-enabled = true
-
-# Asana V2 requires a client secret, handled by mcp-remote.
-[mcp_servers.asana]
-command = "sh"
-args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
-enabled = true
-startup_timeout_sec = 120
-
-[mcp_servers.home-assistant]
-command = "sh"
-args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
-enabled = true
-startup_timeout_sec = 30
-tool_timeout_sec = 30
-
-[mcp_servers.fusion360]
-command = "/opt/homebrew/bin/uvx"
-args = ["fusion360-mcp-server", "--mode", "socket"]
-enabled = true
-startup_timeout_sec = 30
-
-[mcp_servers.netbird]
-command = "sh"
-args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
-enabled = true
-startup_timeout_sec = 30

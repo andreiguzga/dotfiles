@@ -41,6 +41,22 @@ def sounds_root():
     return None
 
 
+def muted_agents():
+    names = set()
+    path = Path(__file__).resolve().parent / "muted-agents"
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        name = line.split("#", 1)[0].strip()
+        if name:
+            names.add(name.lower())
+    extra = os.environ.get("HERDR_ATTENTION_MUTED_AGENTS", "")
+    names.update(name.strip().lower() for name in extra.split(",") if name.strip())
+    return names
+
+
 def play(path):
     if sys.platform == "darwin":
         subprocess.run(["afplay", "-v", VOLUME, str(path)], check=False)
@@ -79,6 +95,10 @@ def main():
     status = find_value(event, "agent_status")
     pool = POOLS.get(status or "")
     if not pool:
+        return
+
+    agent = find_value(event, "agent") or find_value(event, "display_agent")
+    if agent and agent.lower() in muted_agents():
         return
 
     root = sounds_root()

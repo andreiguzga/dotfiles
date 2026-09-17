@@ -1,0 +1,3 @@
+# Agent ids to mute, one per line. Blank lines and # comments are ignored.
+# Matches Herdr's built-in default of muting droid.
+droid

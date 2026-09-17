@@ -14,7 +14,7 @@ from common import event_payload, find_value, is_muted
 
 POOLS = {"blocked": "request", "done": "done"}
 COOLDOWN = float(os.environ.get("HERDR_ATTENTION_COOLDOWN", "3"))
-VOLUME = os.environ.get("HERDR_ATTENTION_VOLUME", "0.25")
+VOLUME = os.environ.get("HERDR_ATTENTION_VOLUME", "0.75")
 
 
 def sounds_root():

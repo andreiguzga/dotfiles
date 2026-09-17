@@ -15,12 +15,12 @@
     "atlassian": {
       "type": "remote",
       "url": "https://mcp.atlassian.com/v1/mcp",
-      "enabled": true
+      "enabled": false
     },
     "asana": {
       "type": "remote",
       "url": "https://mcp.asana.com/v2/mcp",
-      "enabled": true,
+      "enabled": false,
       "oauth": {
         "clientId": "{env:ASANA_CLIENT_ID}",
         "clientSecret": "{env:ASANA_CLIENT_SECRET}",
@@ -34,7 +34,7 @@
         "-lc",
         "exec \"$HOME/.config/opencode/bin/ha-mcp\""
       ],
-      "enabled": true,
+      "enabled": false,
       "timeout": 30000
     },
     "fusion360": {
@@ -45,7 +45,7 @@
         "--mode",
         "socket"
       ],
-      "enabled": true
+      "enabled": false
     },
     "netbird": {
       "type": "local",
@@ -54,7 +54,7 @@
         "-lc",
         "exec \"$HOME/.config/opencode/bin/mcp-netbird\""
       ],
-      "enabled": true
+      "enabled": false
     }
   },
   "provider": {

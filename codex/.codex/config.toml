@@ -87,30 +87,36 @@ enabled = false
 
 [mcp_servers.atlassian]
 url = "https://mcp.atlassian.com/v1/mcp"
+enabled = false
 
 [mcp_servers.asana]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
 startup_timeout_sec = 120.0
+enabled = false
 
 [mcp_servers.home-assistant]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
 startup_timeout_sec = 30.0
 tool_timeout_sec = 30.0
+enabled = false
 
 [mcp_servers.fusion360]
 command = "/opt/homebrew/bin/uvx"
 args = ["fusion360-mcp-server", "--mode", "socket"]
 startup_timeout_sec = 30.0
+enabled = false
 
 [mcp_servers.netbird]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
 startup_timeout_sec = 30.0
+enabled = false
 
 [mcp_servers.upwork]
 url = "https://mcp.upwork.com/mcp"
+enabled = false
 
 [desktop]
 conversationDetailMode = "STEPS_PROSE"

@@ -95,10 +95,12 @@ inspection. This makes real model calls; use it to verify the installed layout.
 ## MCP servers
 
 The Codex and OpenCode base configs define the same five user-configured
-servers: Atlassian, Asana, Home Assistant, Fusion 360, and NetBird. All five are
-enabled by default, as are Codex's configured `node_repl` and computer-use MCP
-servers and the bundled `codex_app` MCP. A plain Codex or OpenCode launch
-therefore exposes every available server without selecting a profile.
+servers: Atlassian, Asana, Home Assistant, Fusion 360, and NetBird. Codex also
+defines Upwork. All of them are disabled by default, so a plain Codex or OpenCode
+launch starts none of them. Enable a subset by selecting a profile (see below).
+Codex additionally configures the app-managed `node_repl` server, the bundled
+`codex_app` server, and a disabled computer-use server; those stay managed by
+Codex and are left untouched.
 
 MCP clients start every enabled server when their process starts; these configs
 do not provide true tool-demand loading. Consequently, a broken credential can
@@ -106,12 +108,13 @@ produce one failed startup authentication per enabled client process. Enabling
 or disabling a server in a config does not change an already running process:
 restart Codex or OpenCode to apply it.
 
-### Legacy profiles
+### Profiles
 
-The checked-in Codex and OpenCode profile files remain as compatibility aliases
-for existing commands, but they no longer select logical MCP subsets. Because
-the base configs enable every server, these commands have the same MCP exposure
-as a plain client launch:
+Profiles are the opt-in mechanism for both clients and map to the same groups:
+`home` enables Home Assistant, `work` enables Atlassian and Asana, `cad` enables
+Fusion 360, and `network` enables NetBird. Codex selects a profile with
+`--profile`; OpenCode merges the file selected by `OPENCODE_CONFIG` on top of
+its global config.
 
 ```sh
 codex --profile home
@@ -120,9 +123,6 @@ codex --profile cad
 codex --profile network
 ```
 
-OpenCode merges the file selected by `OPENCODE_CONFIG` on top of its global
-config. Existing profile-based launch commands remain valid:
-
 ```sh
 OPENCODE_CONFIG="$HOME/.config/opencode/profiles/home.json" opencode
 OPENCODE_CONFIG="$HOME/.config/opencode/profiles/work.json" opencode
@@ -130,10 +130,11 @@ OPENCODE_CONFIG="$HOME/.config/opencode/profiles/cad.json" opencode
 OPENCODE_CONFIG="$HOME/.config/opencode/profiles/network.json" opencode
 ```
 
+Alternatively, set `enabled = true` for a server in the base `config.toml`
+(Codex) or `opencode.json` (OpenCode) to make it available in every session.
 The same commands can be run from a project directory for a project-scoped
-session. Profiles are not required merely to expose MCP servers. There is
-intentionally no wrapper executable: invoking `opencode` from an `opencode`
-launcher can recurse.
+session. There is intentionally no wrapper executable: invoking `opencode` from
+an `opencode` launcher can recurse.
 
 ### Credentials and server prerequisites
 

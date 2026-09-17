@@ -2,7 +2,6 @@
 """Play a random request/done sound on a Herdr agent status change."""
 
 import fcntl
-import json
 import os
 import random
 import subprocess
@@ -11,23 +10,11 @@ import tempfile
 import time
 from pathlib import Path
 
+from common import event_payload, find_value, is_muted
+
 POOLS = {"blocked": "request", "done": "done"}
 COOLDOWN = float(os.environ.get("HERDR_ATTENTION_COOLDOWN", "3"))
 VOLUME = os.environ.get("HERDR_ATTENTION_VOLUME", "0.25")
-
-
-def find_value(payload, key):
-    stack = [payload]
-    while stack:
-        item = stack.pop()
-        if isinstance(item, dict):
-            value = item.get(key)
-            if isinstance(value, str):
-                return value
-            stack.extend(item.values())
-        elif isinstance(item, list):
-            stack.extend(item)
-    return None
 
 
 def sounds_root():
@@ -39,22 +26,6 @@ def sounds_root():
         if (candidate / "request").is_dir() and (candidate / "done").is_dir():
             return candidate
     return None
-
-
-def muted_agents():
-    names = set()
-    path = Path(__file__).resolve().parent / "muted-agents"
-    try:
-        lines = path.read_text().splitlines()
-    except OSError:
-        lines = []
-    for line in lines:
-        name = line.split("#", 1)[0].strip()
-        if name:
-            names.add(name.lower())
-    extra = os.environ.get("HERDR_ATTENTION_MUTED_AGENTS", "")
-    names.update(name.strip().lower() for name in extra.split(",") if name.strip())
-    return names
 
 
 def play(path):
@@ -84,12 +55,8 @@ def state_dir():
 
 
 def main():
-    raw = os.environ.get("HERDR_PLUGIN_EVENT_JSON")
-    if not raw:
-        return
-    try:
-        event = json.loads(raw)
-    except ValueError:
+    event = event_payload()
+    if event is None:
         return
 
     status = find_value(event, "agent_status")
@@ -98,7 +65,7 @@ def main():
         return
 
     agent = find_value(event, "agent") or find_value(event, "display_agent")
-    if agent and agent.lower() in muted_agents():
+    if is_muted(agent):
         return
 
     root = sounds_root()

@@ -79,6 +79,9 @@ show_agent_labels_on_pane_borders = true
 agent_panel_sort = "priority"
 accent = "blue"
 
+[ui.sidebar.agents]
+rows = [["state_icon", "machine", "workspace", "tab"], ["agent", "$mute"]]
+
 [ui.toast]
 delivery = "herdr"
 

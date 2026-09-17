@@ -1,10 +1,21 @@
 id = "gzg.attention-sounds"
 name = "Attention Sounds"
-version = "0.1.0"
-min_herdr_version = "0.7.0"
-description = "Play a random custom sound when an agent is blocked or finished"
+version = "0.2.0"
+min_herdr_version = "0.9.0"
+description = "Play a random custom sound when an agent is blocked or finished, and mark muted agents in the sidebar"
 platforms = ["macos", "linux"]
 
 [[events]]
 on = "pane.agent_status_changed"
 command = ["python3", "play.py"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["python3", "mute-icon.py"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["python3", "mute-icon.py"]
+
+[[startup]]
+command = ["python3", "mute-icon.py", "--all"]

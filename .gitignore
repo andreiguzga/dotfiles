@@ -1,4 +1,5 @@
 .opencode/
+__pycache__/
 
 # Track only Codex settings and launchers, not credentials or runtime state.
 codex/.codex/*

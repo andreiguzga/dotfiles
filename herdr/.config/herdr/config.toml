@@ -79,6 +79,7 @@ show_agent_labels_on_pane_borders = true
 agent_panel_sort = "priority"
 accent = "blue"
 
+status_indicators = "symbols"
 [ui.sidebar.agents]
 rows = [["state_icon", "machine", "workspace", "tab"], ["agent", "$mute"]]
 

@@ -13,5 +13,6 @@
   },
   "model": "opus[1m]",
   "theme": "dark",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "hooks": {"SessionStart":[{"matcher":"^(startup|resume|clear|compact|fork)$","hooks":[{"type":"command","command":"bash '/Users/gzg/.claude/hooks/herdr-agent-state.sh' session","timeout":10}]}]}
 }

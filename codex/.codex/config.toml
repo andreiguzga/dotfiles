@@ -75,8 +75,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.908.70816"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.908.70816/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.911.61220"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.911.61220/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -220,6 +220,9 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/gzg/Documents/Codex/2026-09-16/why"]
+trust_level = "trusted"
+
+[projects."/Users/gzg/Documents/Codex/2026-09-19/how"]
 trust_level = "trusted"
 
 [hooks.state]

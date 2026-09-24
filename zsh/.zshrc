@@ -219,3 +219,6 @@ fi
 # Added by Antigravity
 export PATH="/Users/gzg/.antigravity/antigravity/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+
+# opencode
+export PATH=/Users/gzg/.opencode/bin:$PATH

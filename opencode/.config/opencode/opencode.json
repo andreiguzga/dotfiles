@@ -9,7 +9,27 @@
     "edit": "ask",
     "write": "ask",
     "bash": "ask",
-    "doom_loop": "deny"
+    "doom_loop": "deny",
+    "digitalocean_*": "allow",
+    "digitalocean_*droplet*": "ask",
+    "digitalocean_db_cluster_create*": "ask",
+    "digitalocean_db_cluster_delete*": "ask",
+    "digitalocean_db_cluster_update*": "ask",
+    "digitalocean_db_cluster_upgrade*": "ask",
+    "digitalocean_db_cluster_start*": "ask",
+    "digitalocean_db_cluster_stop*": "ask",
+    "digitalocean_db_cluster_set*": "ask",
+    "digitalocean_db_cluster_resize": "ask",
+    "digitalocean_volume_*": "ask",
+    "digitalocean_reserved_ip_*": "ask",
+    "digitalocean_image_action_*": "ask",
+    "digitalocean_*_create*": "ask",
+    "digitalocean_*_update*": "ask",
+    "digitalocean_*_delete*": "ask",
+    "digitalocean_*_add*": "ask",
+    "digitalocean_*_remove*": "ask",
+    "digitalocean_*_edit": "ask",
+    "digitalocean_*_tag": "ask"
   },
   "mcp": {
     "atlassian": {

@@ -10,7 +10,7 @@ fi
 
 if [ -z "${DIGITALOCEAN_API_TOKEN:-}" ]; then
   DIGITALOCEAN_API_TOKEN="$(op read \
-    "${DIGITALOCEAN_API_TOKEN_REF:-op://Tapify/DigitalOcean MCP/credential}" \
+    "${DIGITALOCEAN_API_TOKEN_REF:-op://Tapify/DigitalOcean MCP/password}" \
     --account "${OP_ACCOUNT:-my.1password.com}")"
 fi
 

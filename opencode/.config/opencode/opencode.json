@@ -37,6 +37,16 @@
       "enabled": false,
       "timeout": 30000
     },
+    "digitalocean": {
+      "type": "local",
+      "command": [
+        "sh",
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/do-mcp\""
+      ],
+      "enabled": false,
+      "timeout": 60000
+    },
     "fusion360": {
       "type": "local",
       "command": [

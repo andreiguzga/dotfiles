@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+
+env_file="$HOME/.config/opencode/secrets/digitalocean.env"
+
+if [ -f "$env_file" ]; then
+  # shellcheck disable=SC1090
+  . "$env_file"
+fi
+
+if [ -z "${DIGITALOCEAN_API_TOKEN:-}" ]; then
+  DIGITALOCEAN_API_TOKEN="$(op read \
+    "${DIGITALOCEAN_API_TOKEN_REF:-op://Tapify/DigitalOcean MCP/credential}" \
+    --account "${OP_ACCOUNT:-my.1password.com}")"
+fi
+
+if [ -z "$DIGITALOCEAN_API_TOKEN" ]; then
+  echo "DigitalOcean API token must not be empty" >&2
+  exit 1
+fi
+export DIGITALOCEAN_API_TOKEN
+
+services="${DIGITALOCEAN_MCP_SERVICES-accounts,networking,volumes,apps,droplets,databases}"
+
+exec npx -y @digitalocean/mcp --services "$services" "$@"

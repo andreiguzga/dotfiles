@@ -187,6 +187,12 @@ export FZF_DEFAULT_OPTS='
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# AeroSpace owns Option+C; keep the fzf directory picker on Ctrl+X, then C.
+if (( ${+widgets[fzf-cd-widget]} )); then
+  bindkey -r '^[c'
+  bindkey '^Xc' fzf-cd-widget
+fi
+
 eval "$(zoxide init zsh)"
 
 # yazi

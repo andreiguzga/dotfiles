@@ -22,6 +22,7 @@ herdr server reload-config
 - Prefix: `Ctrl-s`
 - Reload config: `prefix + r`
 - Navigate panes: `prefix + h/j/k/l`
+- Return to last focused pane across tabs and workspaces: `prefix + t`
 - Split right: `prefix + %`
 - Split down: `prefix + "`
 - Copy mode: `prefix + [`

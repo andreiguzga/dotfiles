@@ -47,6 +47,7 @@ previous_agent = ""
 next_agent = ""
 close_pane = "prefix+x"
 zoom = "prefix+z"
+last_pane = "prefix+t"
 workspace_picker = "prefix+w"
 toggle_sidebar = "prefix+b"
 

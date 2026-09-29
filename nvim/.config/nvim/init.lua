@@ -547,7 +547,13 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+
+          -- Show the current code context in the winbar/statusline (barbecue)
+          if client and client.server_capabilities.documentSymbolProvider then
+            require('nvim-navic').attach(client, event.buf)
+          end
+
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -574,7 +580,7 @@ require('lazy').setup({
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -601,6 +607,12 @@ require('lazy').setup({
         hierarchicalDocumentSymbolSupport = true,
       }
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+
+      -- Needed by nvim-ufo for treesitter-based folding
+      capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true,
+      }
 
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -695,31 +707,27 @@ require('lazy').setup({
       vim.list_extend(tools, lsp_servers)
       require('mason-tool-installer').setup { ensure_installed = tools }
 
-      -- Disable deprecated automatic_enable feature if set by something else
-      package.loaded['mason-lspconfig.features.automatic_enable'] = {
-        init = function() end,
-        enable = function() end,
-        enable_all = function() end,
-      }
+      -- Nvim 0.11+ native LSP configuration.
+      -- `mason-lspconfig` v2 removed the old `handlers` API; it now only installs
+      -- servers and calls `vim.lsp.enable()` for everything in `ensure_installed`.
+      -- The capabilities above are applied to every server via the `'*'` config.
+      vim.lsp.config('*', {
+        capabilities = capabilities,
+      })
 
-      local lspconfig = require 'lspconfig'
+      -- Per-server overrides (settings, filetypes, ...)
+      for server_name, server in pairs(servers or {}) do
+        local overrides = vim.tbl_deep_extend('force', {}, server)
+        overrides.capabilities = nil
+        overrides.on_attach = nil
+        if next(overrides) ~= nil then
+          vim.lsp.config(server_name, overrides)
+        end
+      end
+
       require('mason-lspconfig').setup {
         ensure_installed = lsp_servers,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
-            server.on_attach = function(client, bufnr)
-              if client.server_capabilities.documentSymbolProvider then
-                require('nvim-navic').attach(client, bufnr)
-              end
-            end
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            lspconfig[server_name].setup(server)
-          end,
-        },
+        automatic_enable = lsp_servers,
       }
     end,
   },
@@ -986,12 +994,18 @@ require('lazy').setup({
     end,
   },
   { -- Highlight, edit, and navigate code
+    -- NOTE: the `main` branch is the rewritten nvim-treesitter and requires
+    -- Neovim 0.12+, `tree-sitter-cli` (>= 0.26.1) and a C compiler.
+    -- It does not support lazy-loading.
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-    opts = {
-      ensure_installed = {
+    config = function()
+      require('nvim-treesitter').setup {}
+
+      -- Parsers to install/update. `main` does not auto-install, so list them.
+      local parsers = {
         'bash',
         'c',
         'diff',
@@ -1005,28 +1019,30 @@ require('lazy').setup({
         'vimdoc',
         'javascript',
         'typescript',
+        'tsx',
         'php',
         'yaml',
         'css',
         'scss',
-      },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+      }
+      require('nvim-treesitter').install(parsers)
+
+      -- `main` does not enable highlighting/indent automatically.
+      -- See `:help treesitter-highlight` and `:help nvim-treesitter.indentexpr()`.
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
+      })
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function(args)
+          -- Ruby relies on vim's regex indent rules
+          if vim.bo[args.buf].filetype ~= 'ruby' then
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
+    end,
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the

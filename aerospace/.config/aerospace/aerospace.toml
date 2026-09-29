@@ -1,8 +1,13 @@
 # AeroSpace - Tiling Window Manager for macOS
 # https://github.com/nikitabobko/AeroSpace
 
+config-version = 2
+
 # Start AeroSpace at login
 start-at-login = true
+
+# Keep every configured workspace available, even while it is empty
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D']
 
 # Keep SketchyBar synced with AeroSpace
 after-startup-command = ['exec-and-forget sketchybar', 'exec-and-forget sketchybar --trigger aerospace_focus_change']
@@ -36,10 +41,14 @@ outer.right = 10
 3 = 'main'
 4 = 'main'
 5 = 'main'
+A = 'main'
+B = 'main'
 6 = 'secondary'
 7 = 'secondary'
 8 = 'secondary'
 9 = 'secondary'
+C = 'secondary'
+D = 'secondary'
 
 # Assign apps to workspaces when their windows open
 [[on-window-detected]]
@@ -111,7 +120,7 @@ alt-shift-period = 'move-node-to-monitor --focus-follows-window next'
 alt-ctrl-comma = 'move-workspace-to-monitor --wrap-around prev'
 alt-ctrl-period = 'move-workspace-to-monitor --wrap-around next'
 
-# Workspaces 1-9
+# Workspaces 1-9 and A-D
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
 alt-3 = 'workspace 3'
@@ -121,6 +130,10 @@ alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
+alt-a = 'workspace A'
+alt-b = 'workspace B'
+alt-c = 'workspace C'
+alt-d = 'workspace D'
 
 # Move window to workspace
 alt-shift-1 = 'move-node-to-workspace 1'
@@ -132,6 +145,10 @@ alt-shift-6 = 'move-node-to-workspace 6'
 alt-shift-7 = 'move-node-to-workspace 7'
 alt-shift-8 = 'move-node-to-workspace 8'
 alt-shift-9 = 'move-node-to-workspace 9'
+alt-shift-a = 'move-node-to-workspace A'
+alt-shift-b = 'move-node-to-workspace B'
+alt-shift-c = 'move-node-to-workspace C'
+alt-shift-d = 'move-node-to-workspace D'
 
 # Workspace navigation and monitor movement
 alt-tab = 'workspace-back-and-forth'
@@ -150,7 +167,7 @@ alt-ctrl-l = 'swap right'
 
 # Layout recovery and utility actions
 alt-shift-minus = 'balance-sizes'
-alt-shift-c = ['flatten-workspace-tree', 'layout tiles horizontal', 'balance-sizes']
+alt-ctrl-c = ['flatten-workspace-tree', 'layout tiles horizontal', 'balance-sizes']
 alt-m = 'macos-native-minimize'
 alt-shift-backslash = 'enable toggle'
 

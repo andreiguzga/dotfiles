@@ -34,7 +34,7 @@ sketchybar --add event aerospace_focus_change
 sketchybar --add event spotify_change com.spotify.client.PlaybackStateChanged
 
 DISPLAY_COUNT="$(aerospace list-monitors --count 2>/dev/null || printf '1')"
-WORKSPACES=(1 2 3 4 5 6 7 8 9)
+WORKSPACES=(1 2 3 4 5 6 7 8 9 A B C D)
 
 for did in $(seq 1 "$DISPLAY_COUNT")
 do

@@ -1,0 +1,24 @@
+id = "gzg.orchestrator"
+name = "OpenCode Orchestrator Supervisor"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Wake a registered coordinator for owned worker state changes"
+platforms = ["macos", "linux"]
+
+[[startup]]
+command = ["python3", "supervisor.py", "start"]
+
+[[actions]]
+id = "start"
+title = "Start supervisor"
+command = ["python3", "supervisor.py", "start"]
+
+[[actions]]
+id = "pause"
+title = "Pause coordinator wakeups"
+command = ["python3", "supervisor.py", "pause"]
+
+[[actions]]
+id = "resume"
+title = "Resume coordinator wakeups"
+command = ["python3", "supervisor.py", "resume"]

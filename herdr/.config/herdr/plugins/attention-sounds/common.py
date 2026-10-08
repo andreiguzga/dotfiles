@@ -1,6 +1,8 @@
 import json
+import hashlib
 import os
 import subprocess
+import time
 from pathlib import Path
 
 MUTED_ENV = "HERDR_ATTENTION_MUTED_AGENTS"
@@ -39,6 +41,26 @@ def muted_agents():
 
 def is_muted(agent):
     return bool(agent) and agent.lower() in muted_agents()
+
+
+def is_supervised(pane_id):
+    """Owned worker events go to the coordinator instead of making per-worker sounds."""
+    socket = os.environ.get("HERDR_SOCKET_PATH")
+    if not socket or not pane_id:
+        return False
+    key = hashlib.sha256(socket.encode()).hexdigest()[:16]
+    root = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    try:
+        state = json.loads((root / "herdr-orchestrator" / key / "state.json").read_text())
+    except (OSError, ValueError):
+        return False
+    worker = state.get("workers", {}).get(pane_id)
+    # If supervision is paused or unavailable, preserve the normal attention sounds.
+    return bool(worker and not worker.get("finished") and not state.get("paused")
+                and worker.get("observed") != "missing-or-replaced"
+                and state.get("coordinator_live")
+                and not any(e.get("delivery") == "uncertain" for e in state.get("events", []))
+                and time.time() - state.get("heartbeat", 0) < 30)
 
 
 def herdr(*args):

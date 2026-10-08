@@ -35,3 +35,8 @@ macos-titlebar-style = hidden
 mouse-hide-while-typing = true
 keybind	= global:cmd+opt+t=toggle_quick_terminal
 macos-option-as-alt = true
+
+# >>> herdr-radar font block
+font-codepoint-map = U+E1A0-U+E1BA=Herdr Agent Icons Max
+font-codepoint-map = U+E1C0-U+E1C5=Herdr Agent Icons Max
+# <<< herdr-radar font block

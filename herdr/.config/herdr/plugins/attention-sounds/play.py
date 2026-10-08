@@ -10,7 +10,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from common import event_payload, find_value, is_muted
+from common import event_payload, find_value, is_muted, is_supervised
 
 POOLS = {"blocked": "request", "done": "done"}
 COOLDOWN = float(os.environ.get("HERDR_ATTENTION_COOLDOWN", "3"))
@@ -66,6 +66,8 @@ def main():
 
     agent = find_value(event, "agent") or find_value(event, "display_agent")
     if is_muted(agent):
+        return
+    if is_supervised(find_value(event, "pane_id")):
         return
 
     root = sounds_root()

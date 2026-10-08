@@ -1,0 +1,9 @@
+# Stable workspace numbers; task names and project grouping in the agent list.
+row_label = "both"
+reorder_workspaces = false
+group_indent = 2
+group_gap = true
+done_hold = "until_seen"
+blocked_hold = true
+activity_fresh_minutes = 15
+activity_stale_minutes = 120

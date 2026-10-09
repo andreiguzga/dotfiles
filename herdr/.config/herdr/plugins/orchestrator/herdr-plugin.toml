@@ -1,12 +1,23 @@
 id = "gzg.orchestrator"
 name = "OpenCode Orchestrator Supervisor"
-version = "0.1.0"
+version = "0.2.0"
 min_herdr_version = "0.9.0"
-description = "Wake a registered coordinator for owned worker state changes"
+description = "Wake a registered coordinator and notify the user about owned worker attention events"
 platforms = ["macos", "linux"]
 
 [[startup]]
 command = ["python3", "supervisor.py", "start"]
+
+# Herdr lifecycle events are the bounded fallback when a harness never exposes a
+# native request id. They are latched, deduplicated and reported like any other
+# attention record, and they never delay the direct user notice.
+[[events]]
+on = "pane.agent_status_changed"
+command = ["python3", "attention-event.py"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["python3", "attention-event.py"]
 
 [[actions]]
 id = "start"
@@ -22,3 +33,8 @@ command = ["python3", "supervisor.py", "pause"]
 id = "resume"
 title = "Resume coordinator wakeups"
 command = ["python3", "supervisor.py", "resume"]
+
+[[actions]]
+id = "pending"
+title = "Show pending attention events"
+command = ["python3", "supervisor.py", "pending"]

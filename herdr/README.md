@@ -17,6 +17,15 @@ If Herdr is already running, reload the server config:
 herdr server reload-config
 ```
 
+## Orchestrator and attention events
+
+The `orchestrator` plugin supervises owned workers and notifies you directly
+about approval requests, questions and provider limit states. See
+[ORCHESTRATOR.md](ORCHESTRATOR.md) and [ATTENTION-EVENTS.md](ATTENTION-EVENTS.md).
+Activation needs both packages stowed, the Herdr plugin linked, and the
+supervisor daemon restarted so it runs the new code — `start` alone will not
+replace a daemon still holding `daemon.lock`.
+
 ## Tmux Mappings
 
 - Prefix: `Ctrl-s`

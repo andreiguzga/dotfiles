@@ -38,6 +38,7 @@ python3 ~/.config/herdr/plugins/orchestrator/supervisor.py status
 python3 ~/.config/herdr/plugins/orchestrator/supervisor.py pause
 python3 ~/.config/herdr/plugins/orchestrator/supervisor.py resume
 python3 ~/.config/herdr/plugins/orchestrator/supervisor.py start
+python3 ~/.config/herdr/plugins/orchestrator/supervisor.py pending
 ```
 
 The plugin starts its daemon on Herdr startup; `start` is safe to repeat.
@@ -57,6 +58,11 @@ The supervisor refuses binding a different pane while another one is registered.
 To intentionally replace the coordinator pane, run the helper with `unbind`, then
 `bind` in the new coordinator. This preserves project/worker/event records; review
 and acknowledge any earlier sent or uncertain batch before resuming delivery.
+
+Native approval/question requests and provider quota or error states on
+registered workers reach the user directly and immediately, independent of
+coordinator idle, `pause` and batch acknowledgement. See
+[ATTENTION-EVENTS.md](ATTENTION-EVENTS.md).
 
 Runtime state and logs live in `~/.local/state/herdr-orchestrator/<socket-hash>/`;
 project ledgers live in `~/.local/state/herdr-orchestrator/projects/<project>/`.
@@ -85,13 +91,20 @@ rewritten by its configure action. Adjust settings in its plugin config instead.
 Stow the `herdr` and `opencode` packages, then in Herdr:
 
 ```sh
+stow -t ~ opencode
+stow -t ~ herdr
 herdr plugin install hhdebb/herdr-radar
 herdr plugin link ~/.config/herdr/plugins/orchestrator
 herdr plugin action invoke gzg.orchestrator.start
 herdr plugin action invoke hhdebb.herdr-radar.configure
 ```
 
+Stowing `opencode` is what places the companion attention plugin in
+`~/.config/opencode/plugins/`; without it the Herdr fallback runs but the
+OpenCode native-event path does not. See [ATTENTION-EVENTS.md](ATTENTION-EVENTS.md)
+for the companion install and the daemon-restart requirement.
+
 The agent inherits your configured model. No extra provider credentials are needed
 for the supervisor; each worker CLI uses its own existing login.
 
-Tests: `python3 -m unittest discover -s herdr -p 'test_orchestrator.py' -v`.
+Tests: `python3 -m unittest discover -s herdr -p 'test*.py' -v`.

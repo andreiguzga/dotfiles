@@ -55,7 +55,7 @@ id containing `gpt-` (but not `oss` or `gpt-4`) gets `apply_patch` *instead of*
 - **apply_patch models.** A move asks `edit` with the patched file's *source* path,
   exactly like an in-place update of that file; the destination never appears in the
   ask. No permission rule can tell the two apart, and `apply_patch` cannot be disabled
-  separately from `edit`. So for these models the profile emits **no edit allows**:
+  separately from `edit`. So by default the profile emits **no edit allows**:
   every apply_patch request prompts, moves included, whether the destination is in an
   owned directory or elsewhere in the repo. Approved bash commands stay allowed.
   The generator enforces this: it drops the edit allows when the native tool set has
@@ -68,6 +68,25 @@ id containing `gpt-` (but not `oss` or `gpt-4`) gets `apply_patch` *instead of*
   still exists); outside owned paths it asks.
 - **No `--model`.** The runtime default model is not visible under `--pure` (a plugin
   may supply it), so it may be an apply_patch model. No edit allows are emitted.
+
+#### Opting in: `--allow-apply-patch-edits`
+
+The user can accept that exposure for a specific task to stop every apply_patch edit
+from prompting. The flag emits the owned-path edit allows for an apply_patch model and
+prints a warning on stderr naming the exact exposure:
+
+```
+WARNING: edit: ACCEPTED RISK - apply_patch moves ask on the source path only, so a
+move can write outside the owned paths without a prompt; a post-task scope audit is
+required
+```
+
+Use it only for a task whose owned set covers the files being edited, and only with
+this compensating control: after the task, run `git status --short` (and
+`git diff --stat`) in the worker worktree and confirm that nothing outside the owned
+paths changed. Without that audit the flag trades a visible prompt for a silent
+write-outside-scope, which is strictly worse than prompting. The default stays
+fail-closed, and the same profile is still refused without the flag.
 
 The worker must run the model the profile was generated for: always launch it with
 the identical explicit `--model`. The profile also sets `agent.build.model`, and

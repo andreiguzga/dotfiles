@@ -166,6 +166,39 @@ Rules for using it:
 - Restart the worker process to apply a changed profile. Config is read at startup.
 - If the generator refuses a command you want, leave it out. The worker asks, you
   approve in that pane, and the task continues.
+- For a model that edits through `apply_patch` (a `gpt-` id that is not `oss` or
+  `gpt-4`), add `--allow-apply-patch-edits` only when the user has accepted the
+  exposure for that task. It is opt-in, warns on stderr, and **requires** the
+  post-task scope audit below. Never add it silently.
+
+### Post-task scope audit (required with `--allow-apply-patch-edits`)
+
+In the worker worktree, after the task reports and before accepting it:
+
+```sh
+git status --short
+git diff --stat
+```
+
+Confirm nothing outside the brief's owned files changed. A move performed by
+`apply_patch` is invisible to permission rules, so this audit is the only control
+that catches one. If something outside scope changed, report it to the user and do
+not commit it.
+
+## Claude and Codex workers
+
+These harnesses have their own permission systems; the generator above is
+OpenCode-only. Use their native mechanisms instead of leaving them fully manual:
+
+- **Claude Code.** Start worker sessions with `--permission-mode acceptEdits`. File
+  edits stop prompting while bash, installs, git writes and deploys still ask. Never
+  use `bypassPermissions`, `--dangerously-skip-permissions` or
+  `--allow-dangerously-skip-permissions`.
+- **Codex.** Start workers with `sandbox_mode = workspace-write` and
+  `ask-for-approval = on-request` (equivalently `-s workspace-write -a on-request`).
+  Writes inside the workspace are then silent, while anything escaping the sandbox or
+  reaching the network still asks. Never use `--dangerously-bypass-approvals-and-sandbox`
+  or `-a never`.
 Every task brief must include: objective, acceptance criteria, owned files, dependencies,
 allowed actions, verification commands and expected report format. Tell workers:
 

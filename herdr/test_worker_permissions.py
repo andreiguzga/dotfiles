@@ -315,9 +315,10 @@ class NativeRulesetTests(unittest.TestCase):
         return worker_permissions.build_profile(str(self.root), list(owned), list(verify),
                                                 edits=edits)[0]
 
-    def preflight(self, model=CLAUDE, **kwargs):
+    def preflight(self, model=CLAUDE, allow_apply_patch_edits=False, **kwargs):
         return worker_permissions.preflight(self.profile(**kwargs), str(self.root),
-                                            model, self.env)
+                                            model, self.env,
+                                            allow_apply_patch_edits=allow_apply_patch_edits)
 
     def global_layer(self, permission):
         """The global config file, `<XDG_CONFIG_HOME>/opencode/opencode.json`.
@@ -453,6 +454,38 @@ class NativeRulesetTests(unittest.TestCase):
         problems = worker_permissions.check_effective(
             self.agent()["permission"], agent["permission"], profile, agent["tools"])
         self.assertTrue(any("apply_patch" in problem for problem in problems), problems)
+
+    def test_apply_patch_edits_stay_refused_without_the_opt_in(self):
+        # Fail-closed default: an apply_patch model gets no edit allows at all.
+        profile, agent = self.preflight(model=self.GPT)
+        self.assertIn("apply_patch", agent["tools"])
+        self.assertEqual(profile["edit"], {"*": "ask"})
+
+    def test_apply_patch_edits_opt_in_allows_owned_and_records_exposure(self):
+        profile, agent = self.preflight(model=self.GPT,
+                                        allow_apply_patch_edits=True)
+        self.assertIn("apply_patch", agent["tools"])
+        # Owned paths stop prompting, which is the point of the opt-in.
+        self.assertEqual(
+            worker_permissions.evaluate(agent["permission"], "edit", "pkg/mod.py"),
+            "allow")
+        self.assertEqual(
+            worker_permissions.evaluate(agent["permission"], "edit", "note.md"),
+            "allow")
+        # An unowned path still prompts.
+        self.assertEqual(
+            worker_permissions.evaluate(agent["permission"], "edit", "other/x.py"),
+            "ask")
+        # The exposure must be recorded, never passed silently...
+        accepted = worker_permissions.check_effective(
+            self.agent()["permission"], agent["permission"], profile, agent["tools"],
+            allow_apply_patch_edits=True)
+        self.assertTrue(any(item.startswith("edit: ACCEPTED RISK")
+                            for item in accepted), accepted)
+        # ...and the same profile is still a hard refusal without the flag.
+        refused = worker_permissions.check_effective(
+            self.agent()["permission"], agent["permission"], profile, agent["tools"])
+        self.assertTrue(any("apply_patch" in item for item in refused), refused)
 
     def test_edit_write_model_cannot_move_without_a_bash_prompt(self):
         profile, agent = self.preflight(model=self.CLAUDE)

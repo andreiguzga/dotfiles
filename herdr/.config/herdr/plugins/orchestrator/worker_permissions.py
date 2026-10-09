@@ -515,7 +515,8 @@ def evaluate(rules, permission, pattern):
     return "ask"
 
 
-def check_effective(baseline, candidate, profile, tools=()):
+def check_effective(baseline, candidate, profile, tools=(),
+                    allow_apply_patch_edits=False):
     """Problems that stop the native candidate ruleset from proving the profile.
 
     For each guarded permission, in the ruleset OpenCode will actually evaluate:
@@ -570,8 +571,15 @@ def check_effective(baseline, candidate, profile, tools=()):
                                     f"{pattern!r}")
     if "apply_patch" in tools and any(action == "allow"
                                       for action in profile["edit"].values()):
-        problems.append("edit: the model edits through apply_patch, whose moves ask "
-                        "exactly like updates; an edit allow would pass moves silently")
+        if allow_apply_patch_edits:
+            # Opted into knowingly: the user accepts that a move out of an owned path
+            # is not gated, because 1.18.35 asks apply_patch on the SOURCE path only.
+            problems.append("edit: ACCEPTED RISK - apply_patch moves ask on the source "
+                            "path only, so a move can write outside the owned paths "
+                            "without a prompt; a post-task scope audit is required")
+        else:
+            problems.append("edit: the model edits through apply_patch, whose moves ask "
+                            "exactly like updates; an edit allow would pass moves silently")
     return problems
 
 
@@ -652,11 +660,13 @@ def reject_permission_plugins(config):
                      f"({path}); its rules cannot be verified, refusing")
 
 
-def preflight(profile, cwd, model=None, env=None):
+def preflight(profile, cwd, model=None, env=None, allow_apply_patch_edits=False):
     """Fail closed unless the native ruleset, with the profile applied, proves it.
 
     Returns the profile actually emitted (inherited denies re-asserted, and edit
-    allows dropped when the model edits through `apply_patch`) and the native agent.
+    allows dropped when the model edits through `apply_patch` unless
+    `allow_apply_patch_edits` opts into that documented exposure) and the native
+    agent.
     """
     baseline_env = {key: value for key, value in (env or os.environ).items()
                     if key not in INJECTED}
@@ -669,11 +679,17 @@ def preflight(profile, cwd, model=None, env=None):
         return native_agent(cwd, env)
 
     candidate = candidate_for(profile)
-    if "apply_patch" in candidate["tools"] and profile != without_edit_allows(profile):
+    if not allow_apply_patch_edits and "apply_patch" in candidate["tools"] \
+            and profile != without_edit_allows(profile):
         profile = without_edit_allows(profile)
         candidate = candidate_for(profile)
     problems = check_effective(baseline, candidate["permission"], profile,
-                               candidate["tools"])
+                               candidate["tools"],
+                               allow_apply_patch_edits=allow_apply_patch_edits)
+    notes = [item for item in problems if item.startswith("edit: ACCEPTED RISK")]
+    problems = [item for item in problems if not item.startswith("edit: ACCEPTED RISK")]
+    for note in notes:
+        print("WARNING: " + note, file=sys.stderr)
     if model and candidate.get("model") != dict(zip(("providerID", "modelID"),
                                                     model.split("/", 1))):
         problems.append(f"model: the build agent did not resolve to {model!r}")
@@ -733,6 +749,11 @@ def main(argv=None):
     parser.add_argument("--model", metavar="PROVIDER/MODEL",
                         help="Worker model, pinned into the profile. Without it, or for a "
                              "model that edits through apply_patch, no edit is allowed.")
+    parser.add_argument("--allow-apply-patch-edits", action="store_true",
+                        help="Opt in to edit allows for a model that edits through "
+                             "apply_patch. 1.18.35 asks apply_patch on the SOURCE path "
+                             "only, so a move can write outside the owned paths with no "
+                             "prompt. Off by default; requires a post-task scope audit.")
     parser.add_argument("--list-safe", action="store_true",
                         help="Print the read-only command reference and exit")
     parser.add_argument("--show", action="store_true",
@@ -759,7 +780,8 @@ def main(argv=None):
     # supply it), so it may edit through apply_patch: no edit allows at all.
     profile, root, worktree, _, _ = build_profile(
         args.cwd, args.owned, args.verify, edits=bool(args.model))
-    profile, candidate = preflight(profile, root, args.model)
+    profile, candidate = preflight(profile, root, args.model,
+                                   allow_apply_patch_edits=args.allow_apply_patch_edits)
 
     for line in shell_lines(profile, args.model):
         print(line)

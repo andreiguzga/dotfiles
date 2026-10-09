@@ -108,11 +108,18 @@ so a worker never becomes another coordinator.
 
 ## Worker permission profiles
 
-Optional, per task, and off by default. A profile removes routine approval
+Preferred default for OpenCode workers. A profile removes routine approval
 interruptions for edits inside files that task owns and for the specific check
 commands you already approved; everything else keeps its native prompt. Read
 `herdr/WORKER-PERMISSIONS.md` before using one. It is an interruption policy, not a
 sandbox.
+
+**Use one for every OpenCode worker unless the user says otherwise.** The user
+chose this over relaying approvals, because removing a prompt beats optimizing
+one. Skip it only when: the worker is Claude or Codex (this profile is
+OpenCode-only), the task is read-only with no edits to own, or the generator
+refuses — a refusal is a valid outcome, so start that worker without a profile
+and say so in the ledger rather than retrying or widening the profile.
 
 In the worker pane's shell, in the worker cwd, before starting the agent. Always
 clear first: a refused generation prints nothing and would leave an earlier profile.
@@ -138,6 +145,9 @@ Rules for using it:
 - `--verify` is one exact command per approved check; it covers that exact string only.
   Approving it approves running project code, not a sandbox.
 - Never add `--auto`. Native approvals stay live and you still never answer dialogs.
+- `--verify` takes the check commands this task genuinely needs, not a broad glob:
+  prefer the specific `git status` / `git diff --check` / suite invocation. Each one
+  is approving running project code, so include only what the brief requires.
 - `--model` is the worker's model. Always launch the worker with the identical
   `--model` after `--agent build`; a different model can fail open for moves. Without
   `--model`, or for a model that edits through `apply_patch` (GPT family), no edit is

@@ -105,6 +105,57 @@ recorded choices (including exact model IDs) unless the user updates them.
 Create workspace/tab/pane using explicit IDs, cwd and --no-focus. Start the requested
 tool using `herdr agent start`. For OpenCode workers explicitly pass `-- --agent build`
 so a worker never becomes another coordinator.
+
+## Worker permission profiles
+
+Optional, per task, and off by default. A profile removes routine approval
+interruptions for edits inside files that task owns and for the specific check
+commands you already approved; everything else keeps its native prompt. Read
+`herdr/WORKER-PERMISSIONS.md` before using one. It is an interruption policy, not a
+sandbox.
+
+In the worker pane's shell, in the worker cwd, before starting the agent. Always
+clear first: a refused generation prints nothing and would leave an earlier profile.
+
+```sh
+unset OPENCODE_PERMISSION OPENCODE_CONFIG_CONTENT
+eval "$(python3 ~/.config/herdr/plugins/orchestrator/worker_permissions.py \
+  --cwd /absolute/canonical/worker/cwd \
+  --owned relative/path/owned/dir \
+  --owned relative/path/owned/file.md \
+  --verify 'git status' \
+  --model provider/model)"
+```
+
+Rules for using it:
+
+- `--cwd` must be absolute, canonical (its own `realpath`, e.g. `/private/var/…` on
+  macOS) and inside a git worktree. Start the worker in that same cwd.
+- `--owned` is required and must be the brief's owned files, relative to the worker cwd.
+  No globs, `..`, `.git`, symlinks or the whole cwd. A not-yet-existing file is allowed
+  when its parent directory exists. Edit allowlist only; everything else keeps native
+  policy.
+- `--verify` is one exact command per approved check; it covers that exact string only.
+  Approving it approves running project code, not a sandbox.
+- Never add `--auto`. Native approvals stay live and you still never answer dialogs.
+- `--model` is the worker's model. Always launch the worker with the identical
+  `--model` after `--agent build`; a different model can fail open for moves. Without
+  `--model`, or for a model that edits through `apply_patch` (GPT family), no edit is
+  allowed: every edit and every move prompts, because apply_patch moves look exactly
+  like updates. With edit/write models a move needs `mv`/`git mv`/`git rm`/`rm`, which
+  can never be approved and always ask.
+- The generator checks the effective native ruleset (`opencode --pure debug agent
+  build`) with and without the profile and prints nothing unless it proves the policy.
+  Inherited denies are re-asserted and can never be overridden; if one cannot be, or an
+  inherited config keeps an extra allow, or a plugin has a `config`/`permission.ask`
+  hook, it refuses: start that worker without a profile.
+- The check is point-in-time and does not observe plugins at runtime. Regenerate when
+  the task, cwd, model or any config changes; a restart does not regenerate.
+- It writes no files and starts no worker, and refuses interpreter, compound,
+  redirected or git-write/install/deploy commands.
+- Restart the worker process to apply a changed profile. Config is read at startup.
+- If the generator refuses a command you want, leave it out. The worker asks, you
+  approve in that pane, and the task continues.
 Every task brief must include: objective, acceptance criteria, owned files, dependencies,
 allowed actions, verification commands and expected report format. Tell workers:
 

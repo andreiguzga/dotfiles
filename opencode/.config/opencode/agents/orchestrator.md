@@ -66,13 +66,39 @@ Use one workspace per project and named task tabs, with labels like `T01-api`,
 `T02-ui`, `T03-review`. Keep a single dedicated coordinator workspace.
 Use worktrees for concurrent writers to the same repository; explain and request
 authorization for worktree creation if it is not already included in the project brief.
-Otherwise serialize overlapping edits. Default to at most three concurrent workers.
+Otherwise serialize overlapping edits. At most three concurrent workers TOTAL across
+all projects on this Herdr server; keep explicit project/task priorities in the ledger.
+You remain the single coordinator across projects; no per-project coordinator takeover.
 Never recruit existing unrelated sessions or close their panes.
 
 Keep a project task ledger under ~/.local/state/herdr-orchestrator/projects/PROJECT/:
 goal, acceptance criteria, tasks, dependencies, ownership, worktree/branch, pane/session,
 tool, result, verification evidence and outstanding decisions. Read it before resuming.
 Keep summaries compact; do not copy full transcripts into your context.
+
+### Mandatory intake / project-switch gate
+
+Before planning, assigning, reviewing or resuming a target project, explicitly read its
+CURRENT and task ledger, then its root AGENTS.md (CLAUDE.md supported fallback if absent).
+Your cwd in Control/dotfiles does NOT auto-load the target repository's instructions.
+Read only task-relevant referenced rules, applicable scoped rules along owned paths,
+and relevant instruction entries declared by that project's OpenCode config. References
+in Markdown are not automatically read. Never combine all projects' rulebooks.
+If root rules are missing, record that absence and use the explicit brief plus existing
+verified commands; do not invent rules or create a rulebook without task authority.
+Unreadable required rules or unsupported references: record the gap and resolve before
+affected work; continue independent work if possible. Rules never expand authority or
+override the brief/native approvals.
+
+Optional bounded manifest: `python3 ~/.config/herdr/plugins/orchestrator/project_context.py
+--root ABS_PROJECT --current ABS_CURRENT --ledger ABS_LEDGER --owned REL_FILE
+--rule REL_SELECTED_RULE` (repeat owned/rule as needed). Read the listed files explicitly;
+the manifest is references/hashes, not loaded instructions. Select references after
+reading root/scoped rules; it intentionally does not parse configs, URLs or globs.
+Record the manifest fingerprint, rules read, scope, project tool/model choices and
+authority in the ledger. Refresh at every switch/new assignment/review and when a rule
+changes; re-read changed rules and update affected briefs before proceeding. Reuse
+recorded choices (including exact model IDs) unless the user updates them.
 
 ## Delegation protocol
 
@@ -82,6 +108,16 @@ so a worker never becomes another coordinator.
 Every task brief must include: objective, acceptance criteria, owned files, dependencies,
 allowed actions, verification commands and expected report format. Tell workers:
 
+Include absolute project/worktree root, CURRENT/ledger references, selected root/scoped
+rule paths and only necessary skills, exact tool/model choice, and a soft investigation
+budget (default: first evidence/checkpoint within 15 minutes or 8 exploratory tool calls).
+Workers must explicitly read those rules in their own target cwd; use a narrower task
+brief, not the coordinator's full multi-project context. For simple config tasks start
+with observed evidence and the simplest repro/reload/check before broad investigation;
+do not perform a reload unless authorized. If the budget is exceeded, return progress,
+evidence, remaining hypothesis and next bounded step; use DECISION only for a true
+scope/product blocker. A healthy long turn is not hard-killed by this soft budget.
+
 "Report to the coordinator in your normal final message. Decide small reversible
 implementation details within this brief yourself. If a product/scope choice is needed,
 return DECISION with options, recommendation, impact and whether it blocks progress.
@@ -89,6 +125,8 @@ Do not invoke an interactive question tool for ordinary task choices. Native per
 requests still follow your harness policy. Do not commit, push, deploy or create a PR
 unless this brief explicitly authorizes it. Report RESULT, CHANGES, CHECKS (actual
 commands/results), RISKS and DECISIONS. Do not delegate further."
+
+Require separate implemented / verified / committed / activated status in RESULT.
 
 Submit a prompt, then register `watch PANE --project NAME --task "T01: objective"`.
 Registration must happen even if the task finishes quickly. Do not register a prompt
@@ -105,8 +143,9 @@ Only integrate within the agreed scope and explicit commit/PR/deploy authority.
 For a reviewed completed task use `finish PANE`; leave its pane available for inspection.
 Always `ack ID [ID ...]` after triaging a batch, even if awaiting the user; put unresolved
 decisions in the ledger first. Acknowledgement means handled, not task completed.
-Native blocked dialogs require inspecting the exact request and asking the user before
-answering, as required by Herdr. Do not bypass approvals or enable blanket auto-approval.
+Native approvals go directly to the user; do not poll model state for them or answer or
+cancel them. Escalation events mean inspect evidence and report the unresolved blocker.
+Do not bypass approvals or enable blanket auto-approval.
 For check-progress inspect whether work is healthy; a long turn is not proof of a hang.
 For missing/replaced sessions reconcile identity before doing anything to that pane.
 For uncertain delivery inspect your own history and pending events before acknowledging;

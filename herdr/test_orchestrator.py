@@ -40,6 +40,9 @@ class SupervisorTests(unittest.TestCase):
         observe("working", 36)
         observe("done", 40)
         observe("done", 46)
+        self.assertEqual(len(state["events"]), 1)  # same submitted turn
+        state["workers"]["w1:p2"].update(terminal_queued=False, reported=None, turn="next")
+        observe("done", 52)  # a newly watched fast task need not show working
         self.assertEqual(len(state["events"]), 2)
 
     def test_replaced_session_is_never_adopted(self):
@@ -124,12 +127,14 @@ class SupervisorTests(unittest.TestCase):
                 self.assertEqual(mock.call_count, 3)
             with supervisor.transaction(root) as saved:
                 self.assertEqual(saved["events"][0]["delivery"], "sent")
+                saved["workers"]["w1:p2"]["observed"] = "blocked"
                 supervisor.enqueue(saved, "w1:p2", saved["workers"]["w1:p2"], "blocked", 1)
             with patch.object(supervisor, "api", side_effect=api) as mock:
                 supervisor.tick(root)
                 self.assertEqual(mock.call_count, 1)
             with supervisor.transaction(root) as saved:
                 saved["events"][0]["delivery"] = "acknowledged"
+                saved["workers"]["w1:p2"]["observed"] = "blocked"
             with patch.object(supervisor, "api", side_effect=api) as mock:
                 supervisor.tick(root)
                 self.assertEqual(mock.call_count, 2)

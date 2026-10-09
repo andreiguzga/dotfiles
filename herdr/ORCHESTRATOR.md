@@ -28,6 +28,10 @@ returned as a final `DECISION` report, so the coordinator can handle them.
 
 Workers using OpenCode must launch with `--agent build`, not `orchestrator`.
 Existing sessions are left outside supervision until intentionally assigned a task.
+The limit is three concurrent workers total across all projects, with explicit
+priorities. Mandatory target-project rule loading, compact brief/ledger fields,
+soft investigation budgets and wakeup filtering are detailed in
+[COORDINATOR-OPTIMIZATIONS.md](COORDINATOR-OPTIMIZATIONS.md).
 
 ## Controls
 
@@ -45,7 +49,10 @@ The plugin starts its daemon on Herdr startup; `start` is safe to repeat.
 It samples registered worker states every five seconds, with a five-second settling
 window, and submits one event batch only when the coordinator is idle/done. It uses
 no model tokens to poll. Completed/blocked/missing sessions and long-running turns
-(20 minutes by default) wake the coordinator. The coordinator must acknowledge each
+(20 minutes by default) can wake the coordinator after deterministic filtering.
+Native approvals notify directly; unresolved model escalation has a 120-second
+grace. Terminal review wakes at most once per watched task turn, never proves
+success, and requires inspection/verification. The coordinator must acknowledge each
 batch with `ack ID ...`; an unacknowledged batch prevents further submissions.
 The supervisor never sends keys to permission dialogs.
 

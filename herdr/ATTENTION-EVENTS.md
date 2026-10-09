@@ -20,6 +20,13 @@ latched until its own reply event clears that exact request id, even while
 lifecycle status keeps saying `working`. Re-registering a pane with `watch`, or
 the pane's session being replaced, retires that turn's latches and queued
 notices, so a reminder can never name a superseded task.
+Resolution is remembered by exact pane/session/request id: a late duplicate
+ASKED cannot relatch or re-notify that resolved request. A bounded resolution
+cache is backed by retained resolution audit events, separate from toast dedup.
+Valid owned resolve-first/unmatched replies are also audited inside the ingress
+application transaction. Exact resolution retires pending unanswered facts, and
+notice delivery revalidates the unresolved request immediately before dispatch;
+sent/uncertain delivery receipts are preserved.
 
 Not every completion notifies you. Ordinary `idle`/`done` transitions still go
 only to the coordinator queue, as before.
@@ -107,10 +114,16 @@ limiting is respected with bounded backoff (5s, 15s, 45s, 120s, 300s) and a
 90-second success cooldown per request, so a failing or busy toast path cannot
 produce a hot loop.
 
-The same facts are also queued as `attention-permission`, `attention-question`,
+The same facts are also audited as `attention-permission`, `attention-question`,
 `attention-quota`, `attention-error`, `attention-resolved`,
-`attention-unanswered`, `attention-superseded` and `attention-blocked`
-coordinator events. Those keep the existing delivery safety: one batch only when
+`attention-unanswered`, `attention-superseded`, `attention-recovered` and `attention-blocked`
+events. A code-only filter retires resolved/superseded/recovered pending wakeups,
+coalesces equivalent retries, and allows one terminal review event per submitted
+watch turn. Native request model escalation waits a reversible 120-second grace;
+direct notices do not wait. A resolved request before delivery causes no prompt.
+Sent/uncertain batches are never discarded by the filter. See
+[COORDINATOR-OPTIMIZATIONS.md](COORDINATOR-OPTIMIZATIONS.md).
+Actionable events keep the existing delivery safety: one batch only when
 the coordinator is idle/done, never while a batch is `sent` or `uncertain`, and
 `ack ID ...` still required.
 

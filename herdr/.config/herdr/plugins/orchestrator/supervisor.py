@@ -16,6 +16,10 @@ import uuid
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import attention
 
+# Direct notices are immediate. Model escalation is delayed, reversible, and
+# remains visible in pending/status even after the capped toast reminders end.
+NATIVE_ESCALATION_GRACE = 120.0
+
 
 def state_root():
     socket = os.environ.get("HERDR_SOCKET_PATH")
@@ -61,6 +65,7 @@ def enqueue(state, pane, worker, status, now):
     state["events"].append({
         "id": uuid.uuid4().hex[:12], "pane": pane, "task": worker["task"],
         "project": worker["project"], "status": status, "time": now,
+        "session": worker["session"], "turn": worker.get("turn"),
         "delivery": "pending"
     })
 
@@ -198,8 +203,10 @@ def observe(state, agents, now):
             worker["reported"] = status
             if status in {"idle", "done", "blocked", "missing-or-replaced"}:
                 # idle -> done is a UI distinction, not another completion.
-                if status not in {"idle", "done"} or not worker.get("settled"):
+                if status not in {"idle", "done"} or not worker.get("terminal_queued"):
                     enqueue(state, pane, worker, status, now)
+                    if status in {"idle", "done"}:
+                        worker["terminal_queued"] = True
                 worker["settled"] = status in {"idle", "done"}
             elif status == "working":
                 worker["settled"] = False
@@ -234,6 +241,28 @@ def pending_notices(state, now):
     return retrying
 
 
+def notice_invalid(state, item):
+    worker = state["workers"].get(item.get("pane"))
+    if not worker or worker.get("finished") or item.get("session") != worker["session"] \
+            or item.get("turn") != worker.get("turn"):
+        return "notice_superseded"
+    if item.get("kind") in attention.PENDING_KINDS:
+        section = attention.state(state)
+        pane, request_id = item.get("pane"), item.get("request_id")
+        entry = (section["pending"].get(pane, {}).get(request_id)
+                 or section["overflow"].get(pane, {}).get(request_id))
+        if not entry or entry.get("session") != item.get("session") \
+                or entry.get("turn") != item.get("turn") \
+                or entry.get("kind") != item.get("kind") \
+                or attention.is_resolved(state, pane, item.get("session"), request_id):
+            return "notice_resolved_or_stale"
+    elif item.get("kind") in attention.ALERT_KINDS:
+        entry = attention.state(state)["quota"].get(item.get("pane"))
+        if not entry or entry.get("fingerprint") != item.get("fingerprint"):
+            return "notice_alert_recovered_or_superseded"
+    return None
+
+
 def notify(actions, root):
     """Show direct user notices. Independent of coordinator idle, ack and delivery.
 
@@ -248,6 +277,12 @@ def notify(actions, root):
         key = item["fingerprint"]
         with transaction(root) as state:
             attention_section = attention.state(state)
+            invalid = notice_invalid(state, item)
+            if invalid:
+                attention.bump(attention_section, invalid)
+                attention_section["attempts"].pop(key, None)
+                attention_section["next_attempt"].pop(key, None)
+                continue
             # Backoff first: a failed notice must wait for its retry window even
             # though the same fingerprint is inside the success cooldown.
             if attention_section["next_attempt"].get(key, 0) > time.time():
@@ -260,16 +295,31 @@ def notify(actions, root):
                 attention.bump(attention_section, "notice_suppressed")
                 continue
             attention_section["attempts"][key] = attention_section["attempts"].get(key, 0) + 1
-        try:
-            result = api("notification", "show", item["title"], "--body", item["body"],
-                         "--sound", item.get("sound", "request"))
-            shown = bool(result.get("shown"))
-            reason = result.get("reason")
-        except (RuntimeError, subprocess.TimeoutExpired, ValueError, OSError) as error:
-            shown, reason = False, str(error)
+        # Preserve the durable retry intent before any external call.
         with transaction(root) as state:
             attention_section = attention.state(state)
-            key = item["fingerprint"]
+            invalid = notice_invalid(state, item)
+            if invalid:
+                attention.bump(attention_section, invalid)
+                attention_section["attempts"].pop(key, None)
+                attention_section["next_attempt"].pop(key, None)
+                continue
+            if attention_section["next_attempt"].get(key, 0) > time.time():
+                attention.bump(attention_section, "notice_backoff")
+                continue
+            last = attention_section["seen"].get(key)
+            if last is not None and time.time() - last < attention.NOTICE_COOLDOWN:
+                attention.bump(attention_section, "notice_suppressed")
+                continue
+            # Serialize the final native-state check and dispatch against an
+            # interleaved resolver; no stale action can slip between them.
+            try:
+                result = api("notification", "show", item["title"], "--body", item["body"],
+                             "--sound", item.get("sound", "request"))
+                shown = bool(result.get("shown"))
+                reason = result.get("reason")
+            except (RuntimeError, subprocess.TimeoutExpired, ValueError, OSError) as error:
+                shown, reason = False, str(error)
             if shown:
                 # Only a shown toast starts the cooldown; a failure must stay
                 # retryable as soon as its backoff window expires.
@@ -288,16 +338,22 @@ def notify(actions, root):
 
 
 def retire_turn(state, pane, now):
-    """Drop every latch and queued notice belonging to a retired watch turn."""
+    """Retire undelivered facts (including lifecycle) when a watch turn ends.
+
+    A rewatch submits a new turn; an old idle/done review must not be delivered
+    against its replacement. Audit is retained and sent/uncertain receipts stay
+    untouched. `finish` is called only after coordinator review.
+    """
     section = attention.state(state)
     dropped = 0
     for slot in (section["pending"].pop(pane, None), section["overflow"].pop(pane, None)):
         dropped += len(slot or {})
     attention.bump(section, "dropped_retired_turn", dropped)
+    section["quota"].pop(pane, None)
     for event in state["events"]:
-        if event["pane"] == pane and event["delivery"] == "pending" \
-                and str(event.get("status", "")).startswith("attention-"):
+        if event["pane"] == pane and event["delivery"] == "pending":
             event["delivery"] = "retired"
+            event["filter_reason"] = "retired-watch-turn"
     return dropped
 
 
@@ -311,10 +367,109 @@ def triage_events(root, actions, now):
             worker = state["workers"].get(item.get("pane"))
             if not worker or worker.get("finished"):
                 continue
+            detail = item.get("detail") or {}
+            if detail.get("audit_event_id") and any(
+                    e["id"] == detail["audit_event_id"] for e in state["events"]):
+                continue  # resolution was durably audited during application
+            if item.get("project") != worker["project"] or item.get("task") != worker["task"] \
+                    or detail.get("session") != worker["session"] \
+                    or detail.get("turn") != worker.get("turn"):
+                # Preserve late action evidence, but never assign it to a new turn.
+                previous = dict(worker, project=item.get("project"), task=item.get("task"),
+                                session=detail.get("session"), turn=detail.get("turn"))
+                enqueue(state, item["pane"], previous, item["status"], now)
+                state["events"][-1].update(attention=detail, delivery="retired",
+                                           filter_reason="late-superseded-action")
+                continue
             enqueue(state, item["pane"], worker, item["status"], now)
             state["events"][-1]["attention"] = item.get("detail")
             queued.append(state["events"][-1]["id"])
     return queued
+
+
+def wakeups(state, now):
+    """Filter only undelivered facts, preserving every event and delivery receipt.
+
+    Sent/uncertain batches are never retired, coalesced or implicitly acknowledged.
+    Unknown statuses (including explicit DECISION reports) remain actionable.
+    """
+    section = attention.state(state)
+    ready, equivalent = [], {}
+    recovered = {(e["pane"], e.get("session"), e.get("turn")): index
+                 for index, e in enumerate(state["events"])
+                  if e["status"] == "attention-recovered"
+                  and (e.get("attention") or {}).get("message_key") == "retry"}
+    for index, event in enumerate(state["events"]):
+        if event["delivery"] != "pending":
+            continue
+        pane, status = event["pane"], event["status"]
+        worker = state["workers"].get(pane)
+        reason = None
+        if worker and (event.get("session", worker["session"]) != worker["session"]
+                       or event.get("turn") != worker.get("turn")
+                       or event["project"] != worker["project"]
+                       or event["task"] != worker["task"]):
+            reason = "superseded-watch-turn"
+        elif status in {"attention-resolved", "attention-recovered", "attention-superseded", "working", "unknown"}:
+            reason = "audit-only"
+        detail = event.get("attention") or {}
+        request_id = detail.get("request_id")
+        if not reason and status in {"attention-permission", "attention-question", "attention-unanswered"} \
+                and attention.is_resolved(state, pane, event.get("session", detail.get("session")), request_id):
+            reason = "request-resolved-before-delivery"
+        if not reason and status == "attention-quota" and detail.get("message_key") == "retry":
+            # A matching later recovery supersedes only pending retry evidence,
+            # never sent/uncertain facts or provider errors.
+            if recovered.get((pane, event.get("session"), event.get("turn")), -1) > index:
+                reason = "retry-recovered-before-delivery"
+        slot = {**section["overflow"].get(pane, {}), **section["pending"].get(pane, {})}
+        if not reason and status in {"attention-permission", "attention-question"}:
+            entry = slot.get(request_id)
+            if not entry or entry.get("session") != event.get("session", detail.get("session")):
+                reason = "request-resolved-or-superseded"
+            elif now - entry["since"] < NATIVE_ESCALATION_GRACE:
+                continue
+        if not reason and status in {"blocked", "attention-blocked", "check-progress"} and worker:
+            if slot:
+                reason = "native-request-owns-escalation"
+            elif status != "check-progress" and worker.get("observed") not in {"blocked", None}:
+                reason = "blocked-state-recovered"
+            elif status == "check-progress" and worker.get("observed") not in {"working", "unknown", None}:
+                reason = "progress-state-recovered"
+        if reason:
+            event.update(delivery="retired", filter_reason=reason)
+            continue
+        if status in {"idle", "done"} and worker and worker.get("observed") in {
+                "working", "unknown", "blocked"} and not worker.get("finished"):
+            continue  # retain review evidence until the current turn settles
+        if status in {"idle", "done"} and worker and not worker.get("finished") \
+                and now - worker.get("since", 0) < 5:
+            continue
+        lane = "review-needed" if status in {"idle", "done"} else status
+        if status in {"blocked", "attention-blocked"}:
+            lane = "blocked"
+        evidence = detail.get("evidence") or {}
+        signature = (evidence.get("error_name"), evidence.get("status_code"),
+                     evidence.get("provider"))
+        if status == "attention-quota":
+            signature += (detail.get("message_key"),)
+        if status == "attention-error":
+            signature += (evidence.get("message"),)
+        key = (pane, event.get("session"), event.get("turn"), event["project"],
+               event["task"], lane, request_id, signature)
+        if status not in {"idle", "done", "blocked", "attention-blocked", "check-progress",
+                          "missing-or-replaced", "attention-permission", "attention-question",
+                          "attention-quota", "attention-error"}:
+            key += (event["id"],)  # distinct decisions/unrecognized facts are not equivalent
+        if key in equivalent:
+            event.update(delivery="coalesced", coalesced_into=equivalent[key]["id"])
+            # Keep the latest retry evidence on the selected event; original
+            # evidence remains in the coalesced audit entry.
+            equivalent[key]["latest_evidence_event"] = event["id"]
+            continue
+        equivalent[key] = event
+        ready.append(event)
+    return ready
 
 
 def deliver(root, actions, now=None):
@@ -342,7 +497,9 @@ def tick(root):
     with transaction(root) as state:
         state["heartbeat"] = now
         observe(state, agents, now)
-        statuses = {p: a.get("agent_status", "unknown") for p, a in agents.items()}
+        statuses = {p: agents[p].get("agent_status", "unknown")
+                    if matches(w, agents.get(p)) else "missing-or-replaced"
+                    for p, w in state["workers"].items()}
         # Herdr skips screen detection for panes whose agent owns lifecycle
         # authority. Recording it makes the degraded fallback coverage visible
         # instead of leaving the operator to infer it.
@@ -353,6 +510,7 @@ def tick(root):
     # User notices never wait for coordinator idle, batching or acknowledgement.
     deliver(root, actions, now)
     with transaction(root) as state:
+        pending = wakeups(state, now)[:20]
         coordinator = state.get("coordinator")
         live = agents.get(coordinator["pane"]) if coordinator else None
         state["coordinator_live"] = bool(coordinator and matches(coordinator, live))
@@ -363,14 +521,16 @@ def tick(root):
         # Wait until the last batch is explicitly acknowledged. Never pile up turns.
         if any(e["delivery"] in {"sent", "uncertain"} for e in state["events"]):
             return
-        pending = [e for e in state["events"] if e["delivery"] == "pending"][:20]
         if not pending:
             return
         ids = [e["id"] for e in pending]
         prompt = ("Supervisor event batch " + ", ".join(ids) + ". Run the supervisor status command, "
                   "inspect the listed workers, triage according to your coordinator policy, "
                   "then acknowledge these event IDs. Worker idle/done is not proof of task success. "
-                  "Do not start unrelated work. Events:\n" + json.dumps(pending))
+                  "Do not start unrelated work. Evidence is in supervisor status by event ID. Tasks: "
+                  + json.dumps([{k: attention.text(e.get(k), 80)
+                                 for k in ("id", "pane", "project", "task", "status")}
+                                for e in pending]))
         # Write ahead: a crash between terminal submission and response must not resend.
         for event in pending:
             event["delivery"] = "uncertain"
@@ -616,17 +776,16 @@ def main():
             if args.stall_minutes < 1:
                 parser.error("stall-minutes must be positive")
             previous = state["workers"].get(args.pane)
+            # Every accepted submission is a new turn, even on the same session
+            # with the same task label. Never reuse a completion latch.
+            if previous:
+                retire_turn(state, args.pane, time.time())
             state["workers"][args.pane] = {
                 "kind": live["agent"], "session": identity(live), "project": args.project,
                 "task": args.task, "stall_minutes": args.stall_minutes,
-                "observed": live["agent_status"], "since": time.time(), "settled": False
+                "observed": live["agent_status"], "since": time.time(), "settled": False,
+                "turn": uuid.uuid4().hex[:12], "terminal_queued": False
             }
-            # Re-registering a pane starts a new turn. Latches and queued notices
-            # from the previous task are retired here rather than left to produce
-            # reminders that name a superseded task.
-            if previous and (previous.get("session") != identity(live)
-                             or previous.get("task") != args.task):
-                retire_turn(state, args.pane, time.time())
         elif args.command == "finish":
             state["workers"][args.pane]["finished"] = True
             retire_turn(state, args.pane, time.time())

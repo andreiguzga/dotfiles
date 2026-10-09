@@ -13,6 +13,7 @@ pending native request is never answered on the user's behalf.
 import hashlib
 import re
 import time
+import uuid
 
 MAX_TEXT = 240
 MAX_TASK = 48
@@ -157,12 +158,12 @@ def actionable(record, data):
     return attempt >= RETRY_QUOTA_ATTEMPTS or bool(QUOTA_MARKERS.search(data.get("message", "")))
 
 
-def owned(workers, pane, session, agent=None):
-    """Registered, unfinished, exact-session worker only. Nothing else may notice."""
+def owned(workers, pane, session, agent=None, allow_finished=False):
+    """Exact-session ownership; finished workers may only contribute resolution."""
     if not pane or not session:
         return None
     worker = workers.get(pane)
-    if not worker or worker.get("finished"):
+    if not worker or (worker.get("finished") and not allow_finished):
         return None
     if worker.get("session") != session:
         return None
@@ -182,7 +183,7 @@ def bump(attention, name, amount=1):
 
 def state(store):
     attention = store.setdefault("attention", {})
-    for key in ("pending", "overflow", "quota", "seen", "attempts", "next_attempt", "counts"):
+    for key in ("pending", "overflow", "quota", "seen", "resolved", "attempts", "next_attempt", "counts"):
         attention.setdefault(key, {})
     return attention
 
@@ -205,6 +206,7 @@ def retain(attention, pane, entry):
         dropped[request_id] = {
             "request_id": request_id, "kind": entry.get("kind"), "task": entry.get("task"),
             "project": entry.get("project"), "session": entry.get("session"),
+            "turn": entry.get("turn"),
             "since": entry.get("since"), "title": entry.get("title", "")[:80],
         }
         bump(attention, "overflowed_pending")
@@ -247,6 +249,14 @@ def prune(attention, now):
         ordered = sorted(attention["seen"], key=lambda k: attention["seen"][k])
         for key in ordered[: len(attention["seen"]) - MAX_SEEN]:
             del attention["seen"][key]
+    # Resolution cache is separate from toast cooldowns: a shown notice alone
+    # cannot establish that a request was answered. Durable event audit backs
+    # this bounded cache after expiration/eviction.
+    for key in [k for k, resolved in attention["resolved"].items() if now - resolved > SEEN_TTL]:
+        del attention["resolved"][key]
+    ordered = sorted(attention["resolved"], key=lambda k: attention["resolved"][k])
+    for key in ordered[:max(0, len(ordered) - MAX_SEEN)]:
+        del attention["resolved"][key]
 
 
 def notice_title(record):
@@ -292,10 +302,14 @@ def notice(action_kind, record, fingerprint_value, data=None, reminder=False):
         "body": notice_body(record, data, reminder),
         "sound": "request",
         "reminder": reminder,
+        "pane": record.get("pane"), "session": record.get("session"),
+        "turn": record.get("turn"),
+        "request_id": record.get("request_id"),
     }
 
 
 def triage(record, status, detail):
+    detail = dict(detail, session=record.get("session"), turn=record.get("turn"))
     return {
         "action": "triage",
         "pane": record.get("pane"),
@@ -306,12 +320,26 @@ def triage(record, status, detail):
     }
 
 
+def is_resolved(store, pane, session, request_id):
+    """Exact-id resolution evidence; the bounded cache is only an accelerator."""
+    if not pane or not session or not request_id:
+        return False
+    return fingerprint(pane, session, request_id) in state(store)["resolved"] or any(
+        event.get("status") == "attention-resolved" and event.get("pane") == pane
+        and (event.get("session") or (event.get("attention") or {}).get("session")) == session
+        and (event.get("attention") or {}).get("request_id") == request_id
+        for event in store.get("events", []))
+
+
 def latch(attention, store, worker, record, now):
     """Hold a native pending request until its own reply event clears it."""
     pane = record["pane"]
     request_id = text(record.get("request_id"), 64) or fingerprint(
         record.get("kind"), pane, record.get("session"), record.get("title")
     )
+    if is_resolved(store, pane, worker["session"], request_id):
+        bump(attention, "ignored_resolved_ask")
+        return []
     slot = attention["pending"].setdefault(pane, {})
     if request_id in slot or request_id in attention["overflow"].get(pane, {}):
         bump(attention, "duplicate_pending")
@@ -320,6 +348,7 @@ def latch(attention, store, worker, record, now):
         "kind": record.get("kind"),
         "pane": pane,
         "session": worker["session"],
+        "turn": worker.get("turn"),
         "request_id": request_id,
         "task": worker["task"],
         "project": worker["project"],
@@ -347,13 +376,19 @@ def alert(attention, store, worker, record, now):
     """Record bounded quota/provider-error evidence; notice once when actionable."""
     pane = record["pane"]
     data = evidence(record)
+    # Retry messages often include changing countdowns/attempt numbers. One
+    # provider/retry class is one episode; retain latest bounded evidence.
+    message_key = data.get("message") if record.get("kind") != "quota" else (
+        "provider-limit" if QUOTA_MARKERS.search(data.get("message", "")) else "retry")
     key = fingerprint(record.get("kind"), pane, worker["session"],
-                      data.get("error_name"), data.get("status_code"), data.get("message"))
+                      data.get("provider"), data.get("error_name"),
+                      data.get("status_code"), message_key)
     existing = attention["quota"].get(pane)
     if existing and existing.get("fingerprint") == key:
         existing["last_seen"] = now
         existing["count"] = existing.get("count", 1) + 1
         existing["evidence"] = data
+        existing["message_key"] = message_key
         bump(attention, "duplicate_alert")
         if not actionable(record, data):
             return []
@@ -364,8 +399,10 @@ def alert(attention, store, worker, record, now):
     else:
         entry = {
             "kind": record.get("kind"), "pane": pane, "session": worker["session"],
+            "turn": worker.get("turn"),
             "task": worker["task"], "project": worker["project"],
             "fingerprint": key, "evidence": data, "since": now, "last_seen": now,
+            "message_key": message_key,
             "count": 1, "notified": False,
         }
         attention["quota"][pane] = entry
@@ -375,41 +412,59 @@ def alert(attention, store, worker, record, now):
         entry["notified"] = True
     return [
         notice("notify", entry, key, data),
-        triage(entry, f"attention-{entry['kind']}", {"evidence": data, "count": entry.get("count", 1)}),
+        triage(entry, f"attention-{entry['kind']}", {
+            "evidence": data, "count": entry.get("count", 1),
+            "message_key": entry["message_key"], "fingerprint": key,
+        }),
     ]
 
 
 def resolve(attention, store, worker, record, now):
-    """Clear exactly the replied request ID. Unknown IDs change nothing."""
+    """Clear exactly the replied ID and remember resolution before later replays."""
     pane = record["pane"]
     request_id = text(record.get("request_id"), 64)
+    if not request_id:
+        bump(attention, "unmatched_reply")
+        return []
+    # Native request ids belong to a session, not a watch/task label. A rewatch
+    # must not revive an already-resolved request in that same exact session.
     slot = attention["pending"].get(pane, {})
-    entry = slot.get(request_id)
+    entry = slot.pop(request_id, None)
+    from_overflow = False
     if entry is None:
         # A reply may name a request whose latch moved to overflow; the id is
         # still the same fact, so it clears there too.
         held = attention["overflow"].get(pane, {})
         entry = held.pop(request_id, None)
-        if entry is not None:
-            if not held:
-                attention["overflow"].pop(pane, None)
-            bump(attention, "resolved")
-            return [triage(entry, "attention-resolved", {
-                "request_id": request_id, "kind": entry.get("kind"),
-                "reply": text(record.get("reply"), 24) or None, "from_overflow": True,
-                "waited_seconds": max(0, int(now - entry.get("since", now))),
-            })]
-        bump(attention, "unmatched_reply")
-        return []
-    del slot[request_id]
+        from_overflow = entry is not None
+        if not held:
+            attention["overflow"].pop(pane, None)
     if not slot:
         attention["pending"].pop(pane, None)
-    bump(attention, "resolved")
-    return [triage(entry, "attention-resolved", {
-        "request_id": request_id, "kind": entry.get("kind"),
+    detail = {
+        "request_id": request_id, "session": worker["session"], "turn": worker.get("turn"),
+        "kind": entry.get("kind") if entry else None,
         "reply": text(record.get("reply"), 24) or None,
-        "waited_seconds": max(0, int(now - entry.get("since", now))),
-    })]
+        "unmatched": entry is None,
+    }
+    if entry:
+        detail["waited_seconds"] = max(0, int(now - entry.get("since", now)))
+    if from_overflow:
+        detail["from_overflow"] = True
+    # Persist before leaving the application transaction or confirming ingress.
+    # This includes resolve-first/unmatched ids, even if delivery never runs.
+    event_id = uuid.uuid4().hex[:12]
+    store.setdefault("events", []).append({
+        "id": event_id, "pane": pane, "session": worker["session"],
+        "turn": worker.get("turn"), "project": worker["project"], "task": worker["task"],
+        "status": "attention-resolved", "time": now, "attention": dict(detail),
+        "delivery": "retired", "filter_reason": "audit-only",
+    })
+    attention["resolved"][fingerprint(pane, worker["session"], request_id)] = now
+    prune(attention, now)
+    bump(attention, "resolved" if entry else "unmatched_reply")
+    return [triage(dict(entry, turn=worker.get("turn")), "attention-resolved",
+                   dict(detail, audit_event_id=event_id))] if entry else []
 
 
 def apply(store, record, now):
@@ -420,7 +475,8 @@ def apply(store, record, now):
     pane = record.get("pane")
     session = record.get("session")
     kind = record.get("kind")
-    worker = owned(store.get("workers", {}), pane, session, record.get("agent"))
+    worker = owned(store.get("workers", {}), pane, session, record.get("agent"),
+                   allow_finished=kind == "resolve")
     if worker is None:
         bump(attention, "ignored_unowned")
         return []
@@ -434,6 +490,18 @@ def apply(store, record, now):
         return alert(attention, store, worker, record, now)
     if kind == "resolve":
         return resolve(attention, store, worker, record, now)
+    if kind == "retry-recovered":
+        entry = attention["quota"].get(pane)
+        # Retry -> idle may mean giving up, not recovery from a provider limit.
+        # Only a classified plain retry is cleared; unknown/legacy classes stay.
+        if entry and entry.get("kind") == "quota" and entry.get("session") == session \
+                and entry.get("message_key") == "retry":
+            del attention["quota"][pane]
+            bump(attention, "recovered_retry")
+            return [triage(entry, "attention-recovered", {
+                "fingerprint": entry["fingerprint"], "message_key": "retry",
+            })]
+        return []
     bump(attention, "ignored_kind")
     return []
 
@@ -518,7 +586,9 @@ def reconcile(store, statuses, now):
             if status != "blocked":
                 del attention["quota"][pane]
                 bump(attention, "recovered_blocked")
-        elif now - entry.get("last_seen", now) >= QUOTA_STALE_AFTER and status in {"idle", "done", "working"}:
+        elif entry.get("message_key") != "provider-limit" \
+                and now - entry.get("last_seen", now) >= QUOTA_STALE_AFTER \
+                and status in {"idle", "done", "working"}:
             del attention["quota"][pane]
             bump(attention, "recovered_alert")
     prune(attention, now)

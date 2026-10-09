@@ -192,6 +192,8 @@ const HerdrOrchestratorAttentionPlugin = async () => {
     }
   }
 
+  const retrying = new Set();
+
   return {
     event: async ({ event }) => {
       const type = event?.type;
@@ -218,7 +220,16 @@ const HerdrOrchestratorAttentionPlugin = async () => {
         case "session.status": {
           const status = properties?.status;
           const kind = typeof status === "string" ? status : status?.type;
-          if (kind === "retry" && rootID) publish({ ...quotaRecord(properties), session: rootID });
+          if (kind === "retry" && rootID) {
+            retrying.add(sessionID);
+            publish({ ...quotaRecord(properties), session: rootID });
+          } else if ((kind === "busy" || kind === "idle") && retrying.delete(sessionID)) {
+            // One recovery fact per retry episode; no ordinary status-frame push.
+            if (![...retrying].some((id) => rootSession(id) === rootID)) {
+              publish({ kind: "retry-recovered", pane: process.env.HERDR_PANE_ID,
+                agent: AGENT, session: rootID, source: "opencode:session.status" });
+            }
+          }
           break;
         }
         default:

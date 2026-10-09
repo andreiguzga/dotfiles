@@ -1109,7 +1109,7 @@ class SupersedeTests(unittest.TestCase):
         self.assertIn("attention-unanswered", statuses)
         self.assertEqual(attention.state(state)["overflow"], {})
 
-    def test_retire_turn_clears_latches_and_queued_notices(self):
+    def test_retire_turn_clears_latches_and_retires_undelivered_turn_events(self):
         state = store()
         attention.apply(state, permission("per_a"), 100)
         section = attention.state(state)
@@ -1123,7 +1123,8 @@ class SupersedeTests(unittest.TestCase):
         self.assertEqual(attention.state(state)["overflow"], {})
         deliveries = {e["status"]: e["delivery"] for e in state["events"]}
         self.assertEqual(deliveries["attention-permission"], "retired")
-        self.assertEqual(deliveries["idle"], "pending")
+        self.assertEqual(deliveries["idle"], "retired")
+        self.assertTrue(all(e["filter_reason"] == "retired-watch-turn" for e in state["events"]))
         self.assertEqual(attention.counts(attention.state(state))["dropped_retired_turn"], 2)
 
 

@@ -154,6 +154,14 @@ await emitted("session.created", { info: { id: "ses_child", parentID: "ses_worke
 await emitted("permission.asked", { id: "per_3", sessionID: "ses_child", permission: "bash" });
 assert.equal(record().session, "ses_worker");
 
+// One recovery fact per retry episode; ordinary status churn remains silent.
+await emitted("session.status", { sessionID: "ses_worker", status: { type: "busy" } });
+assert.equal(record().kind, "retry-recovered");
+await emitted("session.status", { sessionID: "ses_child", status: { type: "retry", attempt: 2 } });
+await emitted("session.status", { sessionID: "ses_child", status: { type: "idle" } });
+assert.equal(record().kind, "retry-recovered");
+assert.equal(record().session, "ses_worker");
+
 // Unrelated events publish nothing.
 const before = published.length;
 for (const type of ["session.idle", "tool.execute.after", "file.edited", "session.status"]) {

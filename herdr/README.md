@@ -17,14 +17,24 @@ If Herdr is already running, reload the server config:
 herdr server reload-config
 ```
 
-## Orchestrator and attention events
+## Radar
 
-The `orchestrator` plugin supervises owned workers and notifies you directly
-about approval requests, questions and provider limit states. See
-[ORCHESTRATOR.md](ORCHESTRATOR.md) and [ATTENTION-EVENTS.md](ATTENTION-EVENTS.md).
-Activation needs both packages stowed, the Herdr plugin linked, and the
-supervisor daemon restarted so it runs the new code — `start` alone will not
-replace a daemon still holding `daemon.lock`.
+Install the Radar plugin and apply its managed UI configuration:
+
+```bash
+herdr plugin install hhdebb/herdr-radar
+herdr plugin action invoke hhdebb.herdr-radar.configure
+```
+
+With the `Ctrl-s` prefix:
+
+- `prefix + ,`: Radar settings.
+- `prefix + Shift-v`: grouped/recent agent view.
+- `prefix + Shift-1..9`: workspace jump (indices stay stable).
+
+Radar owns the marked sidebar, tab-bar, and theme blocks in `config.toml`.
+Its configure action rewrites those blocks; adjust Radar settings in
+`.config/herdr/plugins/config/hhdebb.herdr-radar/config.toml` instead.
 
 ## Tmux Mappings
 
@@ -61,5 +71,5 @@ run the Stow command above again and reload the server config.
 - Herdr uses tabs where tmux uses windows, so tmux window numbering maps to `switch_tab = "prefix+1..9"`.
 - Herdr copy mode already uses vim-like movement, `v`/Space selection, and `y`/Enter copy; it does not expose separate tmux `copy-mode-vi` bindings in config.
 - Herdr persistence and `session.resume_agents_on_restore` replace the tmux-resurrect/tmux-continuum workflow for Herdr-managed panes and supported agents.
-- The Tokyo Night theme is built in, so no TPM or tmux-powerkit equivalent is needed.
+- The Catppuccin theme is built in, so no TPM or tmux-powerkit equivalent is needed.
 - If `prefix + %` or `prefix + "` does not register in your terminal, use Herdr's default split keys instead: `prefix + v` for right and `prefix + minus` for down, or adjust `split_vertical` / `split_horizontal` in `.config/herdr/config.toml`.

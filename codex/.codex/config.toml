@@ -106,9 +106,8 @@ tool_timeout_sec = 30.0
 
 [mcp_servers.fusion360]
 command = "/opt/homebrew/bin/uvx"
-args = ["fusion360-mcp-server", "--mode", "socket"]
+args = ["--with", "mcp<2", "fusion360-mcp-server", "--mode", "socket"]
 startup_timeout_sec = 30.0
-enabled = false
 
 [mcp_servers.netbird]
 command = "sh"
@@ -119,6 +118,24 @@ startup_timeout_sec = 30.0
 [mcp_servers.upwork]
 url = "https://mcp.upwork.com/mcp"
 enabled = false
+
+[mcp_servers.freecad]
+command = "/opt/homebrew/bin/uvx"
+args = ["freecad-mcp"]
+
+[mcp_servers.blender]
+command = "/opt/homebrew/bin/uvx"
+args = ["mcp-for-blender"]
+
+[mcp_servers.blender.env]
+BLENDER_MCP_DISABLE_TELEMETRY = "true"
+
+[mcp_servers.soundvisualizer]
+command = "/Users/gzg/.nvm/versions/node/v22.21.0/bin/node"
+args = ["/Users/gzg/Library/Application Support/soundvisualizer/mcp-stdio.js"]
+
+[mcp_servers.touchdesigner]
+url = "http://127.0.0.1:13316/mcp"
 
 [desktop]
 conversationDetailMode = "STEPS_PROSE"

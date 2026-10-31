@@ -33,6 +33,12 @@
     "digitalocean_*_tag": "ask"
   },
   "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@0.0.83"],
+      "enabled": false,
+      "timeout": 60000
+    },
     "cloudflare": {
       "type": "remote",
       "url": "https://mcp.cloudflare.com/mcp",

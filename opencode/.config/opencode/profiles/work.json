@@ -2,9 +2,13 @@
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "atlassian": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/mcp",
       "enabled": true
     },
     "asana": {
+      "type": "remote",
+      "url": "https://mcp.asana.com/v2/mcp",
       "enabled": true
     }
   }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-openai-codex-auth", "./plugins/asana-comment-schema-fix.ts"],
+  "plugin": [],
   "permission": {
     "read": "allow",
     "list": "allow",
@@ -9,6 +9,7 @@
     "edit": "ask",
     "write": "ask",
     "bash": "ask",
+    "external_directory": "ask",
     "doom_loop": "deny",
     "digitalocean_*": "allow",
     "digitalocean_*droplet*": "ask",

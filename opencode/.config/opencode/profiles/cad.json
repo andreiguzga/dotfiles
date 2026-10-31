@@ -2,6 +2,8 @@
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "fusion360": {
+      "type": "local",
+      "command": ["/opt/homebrew/bin/uvx", "fusion360-mcp-server", "--mode", "socket"],
       "enabled": true
     }
   }

@@ -27,7 +27,6 @@
       "effortLevel": "medium"
     }
   },
-  "advisorModel": "opus",
   "theme": "dark",
   "agentPushNotifEnabled": true,
   "autoMode": {

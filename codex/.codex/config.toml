@@ -54,9 +54,6 @@ enabled = true
 [plugins."unified-computer-use@openai-bundled"]
 enabled = true
 
-[plugins."code-review@openai-bundled"]
-enabled = true
-
 [features]
 hooks = true
 js_repl = false
@@ -64,6 +61,7 @@ js_repl = false
 [mcp_servers.node_repl]
 args = []
 command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
+env_vars = ["BROWSER_USE_ACCESS_EXECUTOR_ID", "BROWSER_USE_ACCESS_PIPE_PATH", "BROWSER_USE_ACCESS_VERIFYING_IDENTITY"]
 startup_timeout_sec = 120
 
 [mcp_servers.node_repl.env]
@@ -78,8 +76,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.1007.30912"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.1007.30912/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.1027.30824"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.1027.30824/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex"
 
@@ -96,15 +94,15 @@ enabled = false
 [mcp_servers.asana]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.codex/bin/asana-mcp"']
-startup_timeout_sec = 120.0
 enabled = false
+startup_timeout_sec = 120.0
 
 [mcp_servers.home-assistant]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/ha-mcp"']
+enabled = false
 startup_timeout_sec = 30.0
 tool_timeout_sec = 30.0
-enabled = false
 
 [mcp_servers.fusion360]
 command = "/opt/homebrew/bin/uvx"
@@ -115,8 +113,8 @@ enabled = false
 [mcp_servers.netbird]
 command = "sh"
 args = ["-lc", 'exec "$HOME/.config/opencode/bin/mcp-netbird"']
-startup_timeout_sec = 30.0
 enabled = false
+startup_timeout_sec = 30.0
 
 [mcp_servers.upwork]
 url = "https://mcp.upwork.com/mcp"
@@ -130,8 +128,6 @@ realtimeVoiceScreenContextEnabled = true
 keepRemoteControlAwakeWhilePluggedIn = true
 preventSleepWhileRunning = false
 show-context-window-usage = true
-microphoneInputDeviceId = "e929bdb29e50c6bffac0528e7280129b1a65391890635fe2309f127b8e03d175"
-selected-avatar-id = "null-signal"
 avatar-overlay-mascot-width-px = 164
 
 [desktop.open-in-target-preferences]
@@ -250,4 +246,10 @@ screen_reader_detection_done = true
 
 [tui.model_availability_nux]
 gpt-6-astra = 4
-"gpt-6.1-sol" = 1
+"gpt-6.1-sol" = 4
+
+[realtime]
+voice = "cove"
+
+[audio]
+speaker = "MacBook Pro Speakers"

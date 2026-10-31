@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "theme": {
+    "name": "tokyonight",
+    "mode": "dark"
+  },
+  "diffs": {
+    "wrap": "word"
+  },
+  "session": {
+    "sidebar": "auto",
+    "scrollbar": false,
+    "thinking": "show",
+    "permissions": "autoaccept"
+  },
+  "animations": true,
+  "plugins": [
+    "./herdr-opencode",
+    "opencode-claude-quota",
+    {
+      "package": "opencode-plugin-usage",
+      "options": {
+        "default": "openai"
+      }
+    }
+  ],
+  "tabs": {
+    "mode": "auto"
+  }
+}

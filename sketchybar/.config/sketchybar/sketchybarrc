@@ -124,7 +124,7 @@ do
               --add item "$cpu" right \
               --set "$cpu" display="$did" icon="󰻠" label="--" background.drawing=off \
               --add graph "$cpu_graph" right 42 \
-              --set "$cpu_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
+              --set "$cpu_graph" display="$did" background.drawing=off graph.color=$GRAPH_LINE graph.fill_color=$GRAPH_FILL y_offset=0 \
               --add item "$ram" right \
               --set "$ram" display="$did" icon="󰍛" label="--" background.drawing=off \
               --add item "$disk" right \
@@ -132,7 +132,7 @@ do
               --add item "$net" right \
               --set "$net" display="$did" icon="󰖩" click_script="open 'x-apple.systempreferences:com.apple.Network-Settings.extension' || open '/System/Library/PreferencePanes/Network.prefPane'" label="--" background.drawing=off label.max_chars=16 \
               --add graph "$net_graph" right 42 \
-              --set "$net_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
+              --set "$net_graph" display="$did" background.drawing=off graph.color=$GRAPH_LINE graph.fill_color=$GRAPH_FILL y_offset=0 \
               --add item "$bluetooth" right \
               --set "$bluetooth" display="$did" icon="󰂯" click_script="open 'x-apple.systempreferences:com.apple.BluetoothSettings' || open '/System/Library/PreferencePanes/Bluetooth.prefPane'" label="--" label.max_chars=18 background.drawing=off
 

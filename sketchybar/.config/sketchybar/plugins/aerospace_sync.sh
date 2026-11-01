@@ -1,5 +1,5 @@
 #!/bin/bash
-# Refreshes every AeroSpace-driven bar item from one pair of queries.
+# Refreshes every AeroSpace-driven bar item from a few shared queries.
 # Usage: aerospace_sync.sh <display-count> <workspace>...
 #
 # SketchyBar starts this once per event. Only one run does the work at a time:
@@ -27,11 +27,13 @@ query() {
 }
 
 refresh_bar() {
-  local workspaces windows
+  local workspaces windows focused
 
   # On failure, keep showing the last known state rather than blanking the bar.
   workspaces="$(query list-workspaces --all --format '%{monitor-id}|%{workspace-is-visible}|%{workspace}|%{monitor-name}')" || return
   windows="$(query list-windows --all --format '%{monitor-id}|%{workspace-is-visible}|%{workspace}|%{app-bundle-id}|%{app-name}')" || return
+  # Fails when nothing is focused, which is fine: the bar falls back below.
+  focused="$(query list-windows --focused --format '%{monitor-id}|%{app-bundle-id}|%{app-name}')"
 
   local args=() did sid
   local monitor visible workspace bundle_id name
@@ -57,6 +59,13 @@ refresh_bar() {
         app_bundle_id="$bundle_id"
       fi
     done <<<"$windows"
+
+    # Only one display holds focus; the others show the first visible window.
+    IFS='|' read -r monitor bundle_id name <<<"$focused"
+    if [ "$monitor" = "$did" ]; then
+      app_name="$name"
+      app_bundle_id="$bundle_id"
+    fi
 
     for sid in "${WORKSPACES[@]}"; do
       if [ "$sid" = "$visible_workspace" ]; then

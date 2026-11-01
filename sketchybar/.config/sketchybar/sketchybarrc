@@ -31,6 +31,7 @@ sketchybar --default "${default[@]}"
 
 sketchybar --add event aerospace_workspace_change
 sketchybar --add event aerospace_focus_change
+sketchybar --add event aerospace_mode_change
 sketchybar --add event spotify_change com.spotify.client.PlaybackStateChanged
 
 DISPLAY_COUNT="$(aerospace list-monitors --count 2>/dev/null || printf '1')"
@@ -64,6 +65,7 @@ do
 
   chevron="chevron.$did"
   front_app="front_app.$did"
+  mode="mode.$did"
   media="media.$did"
   clock="clock.$did"
   volume="volume.$did"
@@ -89,9 +91,11 @@ do
   sketchybar --add item "$chevron" left \
              --set "$chevron" display="$did" icon='|' icon.color=$ACCENT label.drawing=off background.drawing=off icon.padding_left=6 icon.padding_right=8 \
              --add item "$front_app" left \
-             --set "$front_app" display="$did" icon.drawing=on icon.width=14 icon.padding_left=0 icon.padding_right=12 background.drawing=off label.color=$TEXT label.padding_left=6 label.max_chars=18
+             --set "$front_app" display="$did" icon.drawing=on icon.width=14 icon.padding_left=0 icon.padding_right=12 background.drawing=off label.color=$TEXT label.padding_left=6 label.max_chars=18 \
+             --add item "$mode" left \
+             --set "$mode" display="$did" drawing=off icon.drawing=off label.color=$ACCENT label.padding_left=6 label.padding_right=6 background.drawing=off
 
-  left_items+=("$chevron" "$front_app")
+  left_items+=("$chevron" "$front_app" "$mode")
 
   sketchybar --add item "$media" "$media_position" \
              --set "$media" display="$did" width="$media_width" icon= icon.padding_left=8 icon.padding_right=6 label.max_chars=34 label.align=left scroll_texts=on script="$PLUGIN_DIR/media.sh" updates=on background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 drawing=off \
@@ -106,19 +110,19 @@ do
               --set "$battery" display="$did" update_freq=120 script="$PLUGIN_DIR/battery.sh" background.drawing=off \
               --subscribe "$battery" system_woke power_source_change \
               --add item "$cpu" right \
-              --set "$cpu" display="$did" icon="󰻠" update_freq=2 script="$PLUGIN_DIR/cpu.sh $cpu_graph" label="--" background.drawing=off \
+              --set "$cpu" display="$did" icon="󰻠" label="--" background.drawing=off \
               --add graph "$cpu_graph" right 42 \
               --set "$cpu_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
               --add item "$ram" right \
-              --set "$ram" display="$did" icon="󰍛" update_freq=5 script="$PLUGIN_DIR/ram.sh" label="--" background.drawing=off \
+              --set "$ram" display="$did" icon="󰍛" label="--" background.drawing=off \
               --add item "$disk" right \
               --set "$disk" display="$did" icon="󰋊" update_freq=20 script="$PLUGIN_DIR/disk.sh" label="--" background.drawing=off \
               --add item "$net" right \
-              --set "$net" display="$did" icon="󰖩" update_freq=2 script="$PLUGIN_DIR/net.sh $net_graph $NET_MAX_BPS" click_script="open 'x-apple.systempreferences:com.apple.Network-Settings.extension' || open '/System/Library/PreferencePanes/Network.prefPane'" label="--" background.drawing=off label.max_chars=16 \
+              --set "$net" display="$did" icon="󰖩" click_script="open 'x-apple.systempreferences:com.apple.Network-Settings.extension' || open '/System/Library/PreferencePanes/Network.prefPane'" label="--" background.drawing=off label.max_chars=16 \
               --add graph "$net_graph" right 42 \
               --set "$net_graph" display="$did" background.drawing=off graph.color=$GRAPH_FILL line_color=$GRAPH_LINE y_offset=0 \
               --add item "$bluetooth" right \
-              --set "$bluetooth" display="$did" icon="󰂯" update_freq=15 script="$PLUGIN_DIR/bluetooth.sh" click_script="open 'x-apple.systempreferences:com.apple.BluetoothSettings' || open '/System/Library/PreferencePanes/Bluetooth.prefPane'" label="--" label.max_chars=18 background.drawing=off
+              --set "$bluetooth" display="$did" icon="󰂯" click_script="open 'x-apple.systempreferences:com.apple.BluetoothSettings' || open '/System/Library/PreferencePanes/Bluetooth.prefPane'" label="--" label.max_chars=18 background.drawing=off
 
    sketchybar --add bracket "left_group.$did" "${left_items[@]}"
   sketchybar --set "left_group.$did" background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 \
@@ -134,5 +138,22 @@ done
 sketchybar --add item aerospace_sync left \
            --set aerospace_sync drawing=off updates=on script="$PLUGIN_DIR/aerospace_sync.sh $DISPLAY_COUNT ${WORKSPACES[*]}" \
            --subscribe aerospace_sync aerospace_workspace_change aerospace_focus_change system_woke
+
+sketchybar --add item aerospace_mode left \
+           --set aerospace_mode drawing=off updates=on script="$PLUGIN_DIR/mode.sh $DISPLAY_COUNT" \
+           --subscribe aerospace_mode aerospace_mode_change
+
+# System stats are the same on every display, so collect each one once and let
+# the script update all displays. These items stay hidden; updates=on keeps them running.
+WIFI_IF="$(networksetup -listallhardwareports | awk '/Wi-Fi|AirPort/ {getline; print $2; exit}')"
+
+sketchybar --add item stats_cpu left \
+           --set stats_cpu drawing=off updates=on update_freq=2 script="$PLUGIN_DIR/cpu.sh $DISPLAY_COUNT" \
+           --add item stats_ram left \
+           --set stats_ram drawing=off updates=on update_freq=5 script="$PLUGIN_DIR/ram.sh $DISPLAY_COUNT" \
+           --add item stats_net left \
+           --set stats_net drawing=off updates=on update_freq=2 script="$PLUGIN_DIR/net.sh $DISPLAY_COUNT $NET_MAX_BPS $WIFI_IF" \
+           --add item stats_bluetooth left \
+           --set stats_bluetooth drawing=off updates=on update_freq=15 script="$PLUGIN_DIR/bluetooth.sh $DISPLAY_COUNT"
 
 sketchybar --update

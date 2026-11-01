@@ -1,32 +1,36 @@
 #!/bin/bash
+# Usage: net.sh <display-count> <max-bytes-per-second> <wifi-interface>
+# macOS redacts the SSID from command-line tools, so the label shows the IP.
 
-GRAPH_NAME="$1"
+DISPLAY_COUNT="$1"
 MAX_BPS="${2:-12500000}"
+WIFI_IF="$3"
 
-WIFI_IF="$(networksetup -listallhardwareports | awk '/Wi-Fi|AirPort/ {getline; print $2; exit}')"
+ICON_ONLINE="󰖩"
+ICON_OFFLINE="󰖪"
+
+update_bar() {
+  local icon="$1" label="$2" graph_value="$3" did
+  local args=()
+  for ((did = 1; did <= DISPLAY_COUNT; did++)); do
+    args+=(--set "net.$did" icon="$icon" label="$label" --push "net.graph.$did" "$graph_value")
+  done
+  sketchybar "${args[@]}"
+}
 
 if [ -z "$WIFI_IF" ]; then
-  sketchybar --set "$NAME" icon="󰖪" label="No Wi-Fi"
-  if [ -n "$GRAPH_NAME" ]; then
-    sketchybar --push "$GRAPH_NAME" 0
-  fi
+  update_bar "$ICON_OFFLINE" "No Wi-Fi" 0
   exit 0
 fi
 
-SSID_RAW="$(networksetup -getairportnetwork "$WIFI_IF" 2>/dev/null)"
-if [[ "$SSID_RAW" == "Current Wi-Fi Network: "* ]]; then
-  SSID="${SSID_RAW#Current Wi-Fi Network: }"
-  ONLINE=1
-elif IP_ADDR="$(ipconfig getifaddr "$WIFI_IF" 2>/dev/null)" && [ -n "$IP_ADDR" ] && ifconfig "$WIFI_IF" | grep -q "status: active"; then
-  SSID="$IP_ADDR"
+ADDRESS="$(ipconfig getifaddr "$WIFI_IF" 2>/dev/null)"
+if [ -n "$ADDRESS" ] && ifconfig "$WIFI_IF" | grep -q "status: active"; then
   ONLINE=1
 else
-  SSID="Offline"
   ONLINE=0
 fi
 
-STATE_KEY="$(printf "%s" "$NAME" | tr -c '[:alnum:]' '_')"
-STATE_FILE="/tmp/sketchybar_net_${STATE_KEY}.state"
+STATE_FILE="/tmp/sketchybar_net.state"
 NOW="$(date +%s)"
 
 read_bytes() {
@@ -68,11 +72,7 @@ NORM="$(awk -v rate="$RATE" -v max="$MAX_BPS" 'BEGIN {
 }')"
 
 if [ "$ONLINE" -eq 1 ]; then
-  sketchybar --set "$NAME" icon="󰖩" label="$SSID"
+  update_bar "$ICON_ONLINE" "$ADDRESS" "$NORM"
 else
-  sketchybar --set "$NAME" icon="󰖪" label="Offline"
-fi
-
-if [ -n "$GRAPH_NAME" ]; then
-  sketchybar --push "$GRAPH_NAME" "$NORM"
+  update_bar "$ICON_OFFLINE" "Offline" "$NORM"
 fi

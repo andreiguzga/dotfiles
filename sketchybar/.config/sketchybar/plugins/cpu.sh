@@ -1,32 +1,19 @@
 #!/bin/bash
+# Usage: cpu.sh <display-count>
+# Runs from one hidden item and updates every display. iostat's second sample
+# covers the last second; its first is an average since boot.
 
-GRAPH_NAME="$1"
+DISPLAY_COUNT="$1"
 
-CPU_USAGE="$(top -l 1 | awk -F'[:,]' '/CPU usage/ {
-  for (i = 1; i <= NF; i++) {
-    if ($i ~ /% idle/) {
-      gsub(/[^0-9.]/, "", $i)
-      idle = $i
-    }
-  }
-}
-END {
-  if (idle == "") {
-    print 0
-  } else {
-    printf "%.0f", 100 - idle
-  }
-}')"
+CPU_IDLE="$(iostat -c 2 -w 1 -n 0 | awk 'END { print $3 }')"
+[[ "$CPU_IDLE" =~ ^[0-9]+$ ]] || exit 0
 
-CPU_NORM="$(awk -v cpu="$CPU_USAGE" 'BEGIN {
-  value = cpu / 100
-  if (value < 0) value = 0
-  if (value > 1) value = 1
-  printf "%.4f", value
-}')"
+CPU_USAGE=$((100 - CPU_IDLE))
+CPU_NORM="$(awk -v cpu="$CPU_USAGE" 'BEGIN { printf "%.4f", cpu / 100 }')"
 
-sketchybar --set "$NAME" label="${CPU_USAGE}%"
+args=()
+for ((did = 1; did <= DISPLAY_COUNT; did++)); do
+  args+=(--set "cpu.$did" label="${CPU_USAGE}%" --push "cpu.graph.$did" "$CPU_NORM")
+done
 
-if [ -n "$GRAPH_NAME" ]; then
-  sketchybar --push "$GRAPH_NAME" "$CPU_NORM"
-fi
+sketchybar "${args[@]}"

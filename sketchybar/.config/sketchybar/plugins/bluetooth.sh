@@ -1,4 +1,7 @@
 #!/bin/bash
+# Usage: bluetooth.sh <display-count>
+
+DISPLAY_COUNT="$1"
 
 BLUETOOTH_INFO="$(system_profiler SPBluetoothDataType 2>/dev/null)"
 BT_STATE="$(printf "%s\n" "$BLUETOOTH_INFO" | awk -F': ' '/State/ {print $2; exit}')"
@@ -10,10 +13,20 @@ if [ "$BT_STATE" = "On" ]; then
   ')"
 
   if [ -n "$CONNECTED_DEVICE" ]; then
-    sketchybar --set "$NAME" icon="󰂱" label="$CONNECTED_DEVICE"
+    ICON="󰂱"
+    LABEL="$CONNECTED_DEVICE"
   else
-    sketchybar --set "$NAME" icon="󰂯" label="On"
+    ICON="󰂯"
+    LABEL="On"
   fi
 else
-  sketchybar --set "$NAME" icon="󰂲" label="Off"
+  ICON="󰂲"
+  LABEL="Off"
 fi
+
+args=()
+for ((did = 1; did <= DISPLAY_COUNT; did++)); do
+  args+=(--set "bluetooth.$did" icon="$ICON" label="$LABEL")
+done
+
+sketchybar "${args[@]}"

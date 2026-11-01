@@ -34,7 +34,11 @@ sketchybar --add event aerospace_focus_change
 sketchybar --add event aerospace_mode_change
 sketchybar --add event spotify_change com.spotify.client.PlaybackStateChanged
 
-DISPLAY_COUNT="$(aerospace list-monitors --count 2>/dev/null || printf '1')"
+# Ask SketchyBar rather than AeroSpace: it may not be running yet at login.
+DISPLAY_STATE="${TMPDIR:-/tmp}/sketchybar-displays.state"
+sketchybar --query displays > "$DISPLAY_STATE"
+DISPLAY_COUNT="$(grep -c '"arrangement-id"' "$DISPLAY_STATE")"
+[ "$DISPLAY_COUNT" -gt 0 ] || DISPLAY_COUNT=1
 WORKSPACES=(1 2 3 4 5 6 7 8 9 A B C D)
 
 for did in $(seq 1 "$DISPLAY_COUNT")
@@ -48,6 +52,14 @@ do
       display="$did"
       icon="$sid"
       label.drawing=off
+      label.font="Hack Nerd Font:Bold:9.0"
+      label.color=$MUTED
+      label.padding_left=18
+      label.padding_right=5
+      label.background.drawing=on
+      label.background.color=0x00000000
+      label.background.image.drawing=on
+      label.background.image.scale=0.42
       icon.color=$MUTED
       icon.highlight_color=$TEXT
       icon.padding_left=6
@@ -77,7 +89,7 @@ do
   net="net.$did"
   net_graph="net.graph.$did"
   bluetooth="bluetooth.$did"
-  monitor_name="$(aerospace list-monitors --format '%{monitor-id}|%{monitor-name}' 2>/dev/null | sed -n "/^$did|/s/^[^|]*|//p" | sed -n '1p')"
+  monitor_name="$(aerospace list-monitors --format '%{monitor-appkit-nsscreen-screens-id}|%{monitor-name}' 2>/dev/null | sed -n "/^$did|/s/^[^|]*|//p" | sed -n '1p')"
   media_position=center
   media_width=dynamic
 
@@ -137,7 +149,11 @@ done
 # the default (when_shown) would never run the script for an item that isn't drawn.
 sketchybar --add item aerospace_sync left \
            --set aerospace_sync drawing=off updates=on script="$PLUGIN_DIR/aerospace_sync.sh $DISPLAY_COUNT ${WORKSPACES[*]}" \
-           --subscribe aerospace_sync aerospace_workspace_change aerospace_focus_change system_woke
+           --subscribe aerospace_sync aerospace_workspace_change aerospace_focus_change space_windows_change system_woke
+
+sketchybar --add item display_watch left \
+           --set display_watch drawing=off updates=on update_freq=5 script="$PLUGIN_DIR/display_watch.sh $DISPLAY_STATE" \
+           --subscribe display_watch system_woke
 
 sketchybar --add item aerospace_mode left \
            --set aerospace_mode drawing=off updates=on script="$PLUGIN_DIR/mode.sh $DISPLAY_COUNT" \

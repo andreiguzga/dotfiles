@@ -10,6 +10,9 @@ DISPLAY_COUNT="$1"
 shift
 WORKSPACES=("$@")
 
+# Matches SketchyBar's display numbering, unlike the left-to-right %{monitor-id}.
+MONITOR_ID='%{monitor-appkit-nsscreen-screens-id}'
+
 COLOR_ACTIVE=0xffe5e9f0
 COLOR_INACTIVE=0xffaeb6c5
 
@@ -17,6 +20,7 @@ STATE_PREFIX="${TMPDIR:-/tmp}/sketchybar-aerospace-sync"
 LOCK="$STATE_PREFIX.lock"
 PENDING="$STATE_PREFIX.pending"
 STALE_LOCK_MINUTES=1
+SETTLE_SECONDS=0.3
 
 # A client whose server dies mid-request can hang forever, so bound each query.
 QUERY_TIMEOUT=()
@@ -30,14 +34,15 @@ refresh_bar() {
   local workspaces windows focused
 
   # On failure, keep showing the last known state rather than blanking the bar.
-  workspaces="$(query list-workspaces --all --format '%{monitor-id}|%{workspace-is-visible}|%{workspace}|%{monitor-name}')" || return
-  windows="$(query list-windows --all --format '%{monitor-id}|%{workspace-is-visible}|%{workspace}|%{app-bundle-id}|%{app-name}')" || return
+  workspaces="$(query list-workspaces --all --format "$MONITOR_ID|%{workspace-is-visible}|%{workspace}|%{monitor-name}")" || return
+  windows="$(query list-windows --all --format "$MONITOR_ID|%{workspace-is-visible}|%{workspace}|%{app-bundle-id}|%{app-name}")" || return
   # Fails when nothing is focused, which is fine: the bar falls back below.
-  focused="$(query list-windows --focused --format '%{monitor-id}|%{app-bundle-id}|%{app-name}')"
+  focused="$(query list-windows --focused --format "$MONITOR_ID|%{app-bundle-id}|%{app-name}")"
 
   local args=() did sid
   local monitor visible workspace bundle_id name
-  local monitor_name visible_workspace occupied app_name app_bundle_id icon_scale
+  local monitor_name visible_workspace app_name app_bundle_id icon_scale
+  local window_count workspace_icon extra_label app_args
 
   for ((did = 1; did <= DISPLAY_COUNT; did++)); do
     monitor_name=""
@@ -48,12 +53,10 @@ refresh_bar() {
       [ "$visible" = "true" ] && visible_workspace="$workspace"
     done <<<"$workspaces"
 
-    occupied=" "
     app_name=""
     app_bundle_id=""
     while IFS='|' read -r monitor visible workspace bundle_id name; do
       [ "$monitor" = "$did" ] || continue
-      occupied+="$workspace "
       if [ "$visible" = "true" ] && [ -z "$app_name" ]; then
         app_name="$name"
         app_bundle_id="$bundle_id"
@@ -68,12 +71,28 @@ refresh_bar() {
     fi
 
     for sid in "${WORKSPACES[@]}"; do
-      if [ "$sid" = "$visible_workspace" ]; then
-        args+=(--set "space.$did.$sid" drawing=on background.drawing=on icon.color="$COLOR_ACTIVE")
-      elif [[ "$occupied" == *" $sid "* ]]; then
-        args+=(--set "space.$did.$sid" drawing=on background.drawing=off icon.color="$COLOR_INACTIVE")
+      window_count=0
+      workspace_icon=""
+      while IFS='|' read -r monitor visible workspace bundle_id name; do
+        [ "$monitor" = "$did" ] && [ "$workspace" = "$sid" ] || continue
+        window_count=$((window_count + 1))
+        [ -n "$workspace_icon" ] || workspace_icon="app.${bundle_id:-$name}"
+      done <<<"$windows"
+
+      if [ "$window_count" -eq 0 ]; then
+        app_args=(label.drawing=off)
       else
-        args+=(--set "space.$did.$sid" drawing=off background.drawing=off icon.color="$COLOR_INACTIVE")
+        extra_label=""
+        [ "$window_count" -gt 1 ] && extra_label="+$((window_count - 1))"
+        app_args=(label.drawing=on label="$extra_label" label.background.image="$workspace_icon")
+      fi
+
+      if [ "$sid" = "$visible_workspace" ]; then
+        args+=(--set "space.$did.$sid" drawing=on background.drawing=on icon.color="$COLOR_ACTIVE" "${app_args[@]}")
+      elif [ "$window_count" -gt 0 ]; then
+        args+=(--set "space.$did.$sid" drawing=on background.drawing=off icon.color="$COLOR_INACTIVE" "${app_args[@]}")
+      else
+        args+=(--set "space.$did.$sid" drawing=off background.drawing=off icon.color="$COLOR_INACTIVE" "${app_args[@]}")
       fi
     done
 
@@ -102,6 +121,11 @@ if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +"$STALE_LOCK_MINUTES" 2>/dev/null)" ]
   rmdir "$LOCK" 2>/dev/null
 fi
 
+# Window events can arrive before AeroSpace has placed the window, and apps can
+# fire them in bursts. Wait for those to settle, and rate-limit repeat refreshes.
+refresh_delay=0
+[ "$SENDER" = "space_windows_change" ] && refresh_delay="$SETTLE_SECONDS"
+
 touch "$PENDING"
 
 while [ -e "$PENDING" ]; do
@@ -111,8 +135,10 @@ while [ -e "$PENDING" ]; do
   trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
   while [ -e "$PENDING" ]; do
+    sleep "$refresh_delay"
     rm -f "$PENDING"
     refresh_bar
+    refresh_delay="$SETTLE_SECONDS"
   done
 
   rmdir "$LOCK" 2>/dev/null

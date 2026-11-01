@@ -56,10 +56,8 @@ do
       background.height=20
       background.drawing=off
       click_script="aerospace workspace $sid"
-      script="$PLUGIN_DIR/aerospace.sh $did $sid"
     )
     sketchybar --add item "$name" left \
-               --subscribe "$name" aerospace_workspace_change aerospace_focus_change \
                --set "$name" "${space[@]}"
     left_items+=("$name")
   done
@@ -91,8 +89,7 @@ do
   sketchybar --add item "$chevron" left \
              --set "$chevron" display="$did" icon='|' icon.color=$ACCENT label.drawing=off background.drawing=off icon.padding_left=6 icon.padding_right=8 \
              --add item "$front_app" left \
-             --set "$front_app" display="$did" icon.drawing=on icon.width=14 icon.padding_left=0 icon.padding_right=12 script="$PLUGIN_DIR/front_app.sh $did" background.drawing=off label.color=$TEXT label.padding_left=6 label.max_chars=18 \
-             --subscribe "$front_app" aerospace_workspace_change aerospace_focus_change system_woke
+             --set "$front_app" display="$did" icon.drawing=on icon.width=14 icon.padding_left=0 icon.padding_right=12 background.drawing=off label.color=$TEXT label.padding_left=6 label.max_chars=18
 
   left_items+=("$chevron" "$front_app")
 
@@ -131,5 +128,11 @@ do
     sketchybar --set "right_group.$did" background.drawing=on background.color=$ITEM_BG background.height=22 background.corner_radius=8 \
                                     background.padding_left=3 background.padding_right=3
 done
+
+# Hidden item that owns all AeroSpace-driven updates. updates=on is required:
+# the default (when_shown) would never run the script for an item that isn't drawn.
+sketchybar --add item aerospace_sync left \
+           --set aerospace_sync drawing=off updates=on script="$PLUGIN_DIR/aerospace_sync.sh $DISPLAY_COUNT ${WORKSPACES[*]}" \
+           --subscribe aerospace_sync aerospace_workspace_change aerospace_focus_change system_woke
 
 sketchybar --update

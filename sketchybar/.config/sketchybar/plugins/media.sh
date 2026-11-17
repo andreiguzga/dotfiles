@@ -6,6 +6,16 @@ import shlex
 import subprocess
 import sys
 
+
+def run(*args, **kwargs):
+    try:
+        return subprocess.run(*args, timeout=2, **kwargs)
+    except (OSError, subprocess.TimeoutExpired):
+        # A busy/unresponsive player must not hold a bar job open or erase its
+        # last known state. The next playback event or periodic tick retries.
+        raise SystemExit(0)
+
+
 name = sys.argv[1]
 raw = sys.argv[2] if len(sys.argv) > 2 else ""
 
@@ -28,10 +38,10 @@ app = (data.get("app") or ("Spotify" if "Player State" in data else "")).strip()
 
 # Startup and wake events have no payload. Query once so an already-playing
 # Spotify track appears without waiting for the next playback notification.
-if not raw and subprocess.run(
+if not raw and run(
     ["pgrep", "-x", "Spotify"], stdout=subprocess.DEVNULL
 ).returncode == 0:
-    result = subprocess.run([
+    result = run([
         "osascript", "-e",
         'tell application "Spotify" to return (player state as text) & linefeed & '
         '(artist of current track) & linefeed & (name of current track)',
@@ -47,7 +57,7 @@ lower_title = title.lower()
 browser_apps = {"safari", "google chrome", "chrome", "brave browser", "brave", "arc", "firefox", "microsoft edge"}
 
 if state != "playing" or not title:
-    subprocess.run([
+    run([
         "sketchybar", "--set", name,
         "drawing=off",
         "label=",
@@ -66,7 +76,7 @@ if "spotify" in lower_app:
 elif "youtube" in lower_app or "youtube" in lower_title or lower_app in browser_apps:
     icon = ""
 
-subprocess.run([
+run([
     "sketchybar", "--set", name,
     "drawing=on",
     f"icon={icon}",

@@ -3,7 +3,7 @@
 
 DISPLAY_COUNT="$1"
 
-MEMORY_USED="$(memory_pressure 2>/dev/null | awk -F': ' '/System-wide memory free percentage/ {
+MEMORY_USED="$(memory_pressure -Q 2>/dev/null | awk -F': ' '/System-wide memory free percentage/ {
   gsub(/%/, "", $2)
   if ($2 == "") {
     print 0

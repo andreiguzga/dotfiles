@@ -22,8 +22,57 @@ herdr server reload-config
 Install the Radar plugin and apply its managed UI configuration:
 
 ```bash
-herdr plugin install hhdebb/herdr-radar
+herdr plugin install hhdebb/herdr-radar --ref 1ba8cc4a3900191c9f1f4f850398c7dd10212df2
 herdr plugin action invoke hhdebb.herdr-radar.configure
+```
+
+The pinned revision above is Radar v1.4.2, the version inspected during the
+November 17, 2026 input-latency investigation.
+
+### Source and installation state
+
+Radar is a third-party GitHub-managed plugin, not a local plugin implemented in
+this repository. Herdr downloads its source into
+`~/.config/herdr/plugins/github/` (newer installs can use
+`github-installations/`). The inspected checkout was
+`hhdebb.herdr-radar-afabda667cbe`, with its own `.git` directory.
+
+Dotfiles tracks Radar's user configuration and the managed UI blocks, not that
+external checkout. `~/.config/herdr/plugins.json` holds Herdr's local plugin
+registration, source revision and enabled state; it is runtime installation
+metadata, not part of this Stow package. Consequently, Stow alone neither
+installs Radar nor reproduces its enabled/disabled state.
+
+Use `herdr plugin list --plugin hhdebb.herdr-radar --json` to inspect the actual
+installation. The upstream source is <https://github.com/hhdebb/herdr-radar>.
+Do not edit the downloaded checkout as a durable dotfiles customization.
+
+### Animator isolation test
+
+Radar is currently disabled for the input-latency investigation. Its animator
+was also stopped using the plugin's `stopAnimator({purge: false})` helper, which
+waits for the daemon to exit and preserves titles and sort keys. Agents and
+their terminal processes were left running.
+
+For the equivalent supported CLI workflow:
+
+```bash
+herdr plugin action invoke hhdebb.herdr-radar.state-stop
+herdr plugin disable hhdebb.herdr-radar
+herdr plugin log list --plugin hhdebb.herdr-radar --limit 5
+```
+
+The stop action is asynchronous: check its command log for successful completion.
+Disabling the plugin prevents its startup and agent-detection watchdog hooks
+from restarting the animator. A plain animator stop without disabling the hooks
+can be undone when another agent is detected. The existing managed UI blocks
+remain installed; this does not switch to Herdr's native sidebar.
+
+To end the test without restarting Herdr or its agents:
+
+```bash
+herdr plugin enable hhdebb.herdr-radar
+herdr plugin action invoke hhdebb.herdr-radar.state-start
 ```
 
 With the `Ctrl-s` prefix:

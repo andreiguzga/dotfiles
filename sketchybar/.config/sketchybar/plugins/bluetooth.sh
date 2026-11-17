@@ -3,7 +3,7 @@
 
 DISPLAY_COUNT="$1"
 
-BLUETOOTH_INFO="$(system_profiler SPBluetoothDataType 2>/dev/null)"
+BLUETOOTH_INFO="$(system_profiler -timeout 5 SPBluetoothDataType 2>/dev/null)"
 BT_STATE="$(printf "%s\n" "$BLUETOOTH_INFO" | awk -F': ' '/State/ {print $2; exit}')"
 
 if [ "$BT_STATE" = "On" ]; then

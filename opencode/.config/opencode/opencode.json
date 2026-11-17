@@ -46,7 +46,7 @@
     },
     "atlassian": {
       "type": "remote",
-      "url": "https://mcp.atlassian.com/v1/mcp",
+      "url": "https://mcp.atlassian.com/v2/mcp",
       "enabled": false
     },
     "asana": {
@@ -97,6 +97,18 @@
         "exec \"$HOME/.config/opencode/bin/mcp-netbird\""
       ],
       "enabled": false
+    },
+    "servers": {
+      "browse": {
+        "type": "local",
+        "command": [
+          "/Users/gzg/.local/bin/browse",
+          "mcp"
+        ],
+        "environment": {
+          "OPENCODE_BROWSER_RUNTIME": "auto-update"
+        }
+      }
     }
   },
   "provider": {

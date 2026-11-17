@@ -76,8 +76,8 @@ NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.1027.30824"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.1027.30824/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.1111.21308"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/gzg/.codex/plugins/cache/openai-bundled/browser/26.1111.21308/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/gzg/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex"
 
@@ -137,15 +137,19 @@ args = ["/Users/gzg/Library/Application Support/soundvisualizer/mcp-stdio.js"]
 [mcp_servers.touchdesigner]
 url = "http://127.0.0.1:13316/mcp"
 
+[mcp_servers.lightcraft]
+command = "/Users/gzg/.local/bin/lightcraft-cli"
+args = ["mcp", "--compact", "--connect", "127.0.0.1:7980"]
+
 [desktop]
 conversationDetailMode = "STEPS_PROSE"
 ambient-suggestions-enabled = true
-followUpQueueMode = "queue"
 realtimeVoiceScreenContextEnabled = true
 keepRemoteControlAwakeWhilePluggedIn = true
 preventSleepWhileRunning = false
 show-context-window-usage = true
 avatar-overlay-mascot-width-px = 164
+migratedFollowUpQueueToSteer = true
 
 [desktop.open-in-target-preferences]
 global = "ghostty"

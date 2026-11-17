@@ -7,7 +7,7 @@
     ],
     "ask": []
   },
-  "model": "opus",
+  "model": "fable",
   "hooks": {
     "SessionStart": [
       {

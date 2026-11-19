@@ -28,6 +28,9 @@ Successful jobs are never sent cleanup signals. During cancellation the group
 leader is reaped only after signaling, preventing its PID from being reused in
 between signals. Cancellation failures and deadlines are timestamped in the
 existing SketchyBar error log; this does not install a background recorder.
+Cancellation uses a dedicated exception rather than `InterruptedError`: Python
+3.15's macOS subprocess wait catches `OSError` subclasses internally, which
+otherwise swallows the cancellation request.
 
 The volume event handler stays lightweight and unguarded so rapid key presses do
 not discard the final volume value. Media has a periodic fallback for skipped

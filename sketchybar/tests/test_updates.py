@@ -204,6 +204,31 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(runner.run_once("completed", 3, [sys.executable, "-c", "pass"]), 0)
         kill_group.assert_not_called()
 
+    def test_cancellation_survives_os_error_fallback_in_subprocess_wait(self):
+        handlers = {}
+        process = Mock()
+
+        def install_handler(signum, handler):
+            previous = handlers.get(signum, signal.SIG_DFL)
+            handlers[signum] = handler
+            return previous
+
+        def wait_with_os_error_fallback(**kwargs):
+            # Python 3.15's macOS kqueue wait treats any OSError as a reason
+            # to fall back to another wait, swallowing InterruptedError.
+            try:
+                handlers[signal.SIGTERM](signal.SIGTERM, None)
+            except OSError:
+                return 0
+
+        process.wait.side_effect = wait_with_os_error_fallback
+        with patch.object(runner, "state_directory", return_value=self.root), \
+             patch.object(runner.subprocess, "Popen", return_value=process), \
+             patch.object(runner.signal, "signal", side_effect=install_handler), \
+             patch.object(runner, "stop_process_group", return_value=True) as stop:
+            self.assertEqual(runner.run_once("interrupted", 3, ["worker"]), 128 + signal.SIGTERM)
+        stop.assert_called_once_with(process)
+
     def test_cancellation_keeps_leader_unreaped_until_both_signals(self):
         events = []
         process = Mock(pid=1234, returncode=None)

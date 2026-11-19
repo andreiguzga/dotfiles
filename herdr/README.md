@@ -22,12 +22,13 @@ herdr server reload-config
 Install the Radar plugin and apply its managed UI configuration:
 
 ```bash
-herdr plugin install hhdebb/herdr-radar --ref 1ba8cc4a3900191c9f1f4f850398c7dd10212df2
+herdr plugin install hhdebb/herdr-radar --ref v1.5.2
 herdr plugin action invoke hhdebb.herdr-radar.configure
 ```
 
-The pinned revision above is Radar v1.4.2, the version inspected during the
-November 17, 2026 input-latency investigation.
+The pinned release above is Radar v1.5.2. The initial November 17, 2026
+input-latency investigation inspected v1.4.2 at commit
+`1ba8cc4a3900191c9f1f4f850398c7dd10212df2`; the plugin was subsequently updated.
 
 ### Source and installation state
 
@@ -49,10 +50,12 @@ Do not edit the downloaded checkout as a durable dotfiles customization.
 
 ### Animator isolation test
 
-Radar is currently disabled for the input-latency investigation. Its animator
-was also stopped using the plugin's `stopAnimator({purge: false})` helper, which
-waits for the daemon to exit and preserves titles and sort keys. Agents and
-their terminal processes were left running.
+Radar v1.5.2 is currently enabled. During the input-latency investigation its
+automatic hooks were disabled and its animator was stopped using the plugin's
+`stopAnimator({purge: false})` helper, which waits for the daemon to exit and
+preserves titles and sort keys. Agents and their terminal processes were left
+running. Stuttering continued while Radar was disabled, so the plugin was
+re-enabled; that comparison did not establish Radar as the cause.
 
 For the equivalent supported CLI workflow:
 

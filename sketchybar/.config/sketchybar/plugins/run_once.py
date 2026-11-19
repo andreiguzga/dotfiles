@@ -14,6 +14,10 @@ import tempfile
 import time
 
 
+class JobInterrupted(Exception):
+    """Request cancellation without being mistaken for an OS wait failure."""
+
+
 def state_directory():
     directory = Path(tempfile.gettempdir()) / f"sketchybar-jobs-{os.getuid()}"
     directory.mkdir(mode=0o700, exist_ok=True)
@@ -85,7 +89,10 @@ def run_once(key, seconds, command, min_interval=0):
         previous_handlers = {}
 
         def interrupted(signum, frame):
-            raise InterruptedError(signum)
+            # Python 3.15's kqueue-based subprocess wait catches OSError,
+            # including InterruptedError. Keep our cancellation outside that
+            # hierarchy so it reaches the cleanup handler on every version.
+            raise JobInterrupted(signum)
 
         for signum in (signal.SIGTERM, signal.SIGINT):
             previous_handlers[signum] = signal.signal(signum, interrupted)
@@ -96,7 +103,7 @@ def run_once(key, seconds, command, min_interval=0):
             cancel = True
             report(f"{key} exceeded {seconds:g}s; requesting process-tree cancellation")
             return 124
-        except InterruptedError as error:
+        except JobInterrupted as error:
             cancel = True
             return 128 + error.args[0]
         finally:

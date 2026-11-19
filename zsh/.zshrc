@@ -104,16 +104,17 @@ fi
 # OS detection and OS-specific paths
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # MacOS
+  # nvm itself is loaded once by the oh-my-zsh nvm plugin (from ~/.nvm).
+  # Sourcing Homebrew's nvm.sh here as well doubled shell startup time.
   export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
   export PATH="/usr/local/sbin:/usr/local/php5/bin:/usr/local/bin:/usr/local/mysql/bin:~/.composer/vendor/bin:$PATH"
   export PATH="/usr/local/opt/openssl/bin:$PATH"
   export PATH="/usr/local/opt/libxml2/bin:$PATH"
   export PATH="$HOME/.config/nvim/tools/lua-language-server/bin/macOS:$PATH"
   export ANDROID_HOME=$HOME/Library/Android/sdk
-  export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+  # Fallback only: appended so it never shadows the nvm default.
+  export PATH="$PATH:/opt/homebrew/opt/node@22/bin"
   export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
   export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
   alias prusa-slicer="/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer"
@@ -151,8 +152,9 @@ export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH="$JAVA_HOME/bin:$PATH"
 
-# Use the configured nvm default in new interactive shells.
-if command -v nvm >/dev/null 2>&1; then
+# Loading nvm already activates the default version. Re-run the (slow)
+# `nvm use` only if something else on PATH ended up shadowing it.
+if command -v nvm >/dev/null 2>&1 && [[ "$(command -v node)" != "$NVM_DIR"/* ]]; then
   nvm use --silent default >/dev/null
 fi
 

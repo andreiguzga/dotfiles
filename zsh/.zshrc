@@ -228,5 +228,5 @@ fi
 export PATH="/Users/gzg/.antigravity/antigravity/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
-# opencode
-export PATH=/Users/gzg/.opencode/bin:$PATH
+# Prefer OpenCode v2 after all other PATH additions.
+export PATH="$HOME/.opencode/bin:$PATH"

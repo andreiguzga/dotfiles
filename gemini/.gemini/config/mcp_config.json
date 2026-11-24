@@ -1,0 +1,67 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.83"
+      ],
+      "disabled": true
+    },
+    "cloudflare": {
+      "url": "https://mcp.cloudflare.com/mcp",
+      "disabled": true
+    },
+    "atlassian": {
+      "url": "https://mcp.atlassian.com/v2/mcp",
+      "disabled": true
+    },
+    "asana": {
+      "url": "https://mcp.asana.com/v2/mcp",
+      "disabled": true
+    },
+    "home-assistant": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/ha-mcp\""
+      ],
+      "disabled": true
+    },
+    "digitalocean": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/do-mcp\""
+      ],
+      "disabled": true
+    },
+    "fusion360": {
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "fusion360-mcp-server",
+        "--mode",
+        "socket"
+      ],
+      "disabled": true
+    },
+    "netbird": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/mcp-netbird\""
+      ],
+      "disabled": true
+    },
+    "browse": {
+      "command": "/Users/gzg/.local/bin/browse",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "OPENCODE_BROWSER_RUNTIME": "auto-update"
+      },
+      "disabled": true
+    }
+  }
+}

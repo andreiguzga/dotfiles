@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "digitalocean": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/do-mcp\""
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "home-assistant": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/ha-mcp\""
+      ]
+    }
+  }
+}

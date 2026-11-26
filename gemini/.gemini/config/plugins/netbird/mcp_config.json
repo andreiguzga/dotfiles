@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "netbird": {
+      "command": "sh",
+      "args": [
+        "-lc",
+        "exec \"$HOME/.config/opencode/bin/mcp-netbird\""
+      ]
+    }
+  }
+}
